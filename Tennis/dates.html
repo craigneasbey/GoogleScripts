@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+        <script>
+/**
+ * Generates a list of all Tuesdays for a year in Australian date format DD/MM/YYYY
+ * Uses the year parameter if supplied
+ * 
+ * Example: https://googledrive.com/host/<DOCUMENT_ID>?year=2017
+ *
+ * Created by craigneasbey
+ */
+function listTuesdays() {
+    // Removed as year is assigned via amended html script
+    // see function generateDates_() in TennisRoster.gs
+    //var year = getUrlParameter('year');
+    
+    if(!year) {
+      year = 2016
+    }
+    
+    for ( var i = 0; i < 12; i++ ) {
+        var temp = getTuesdays(i, year);
+      
+      for ( var j = 0; j < temp.length; j++ ) {
+        //console.log(moment(temp[j]).format("DD MMM YYYY"));
+    
+        jQuery("#list").append(moment(temp[j]).format("DD/MM/YYYY"));
+        jQuery("#list").append("<BR>");
+      }
+    }
+}
+
+// http://stackoverflow.com/questions/19491336/get-url-parameter-jquery
+function getUrlParameter(sParam) {
+    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+        sURLVariables = sPageURL.split('&'),
+        sParameterName,
+        i;
+
+    for (i = 0; i < sURLVariables.length; i++) {
+        sParameterName = sURLVariables[i].split('=');
+
+        if (sParameterName[0] === sParam) {
+            return sParameterName[1] === undefined ? true : sParameterName[1];
+        }
+    }
+};
+
+function getTuesdays(month, year) {
+    var d = new Date(year, month, 1),
+        tuesdays = [];
+
+    d.setDate(d.getDate() + (9 - d.getDay()) % 7)
+    while (d.getMonth() === month) {
+        tuesdays.push(new Date(d.getTime()));
+        d.setDate(d.getDate() + 7);
+    }
+
+    return tuesdays;
+}
+        </script>
+    </head>
+    <body onload="listTuesdays();">
+    <div>
+    <h1>Instructions</h1>
+    </div>
+    <div>
+    <ul>
+    <li>Ensure spreadsheet is in Australian format</li>
+<li>Copy and paste dates from below into tennis roster</li>
+<li>Use the "Paint Format" tool to copy the format from previous rows</li>
+<li>Otherwise, format dates with "DD Mon YYYY"</li>
+<li>Select a range including a previous row and new rows</li>
+<li>Add data validation (this will copy the previous validation down)</li>
+</ul>
+    </div>
+        <div id="list"></div>
+    </body>
+</html>
+
+
+
