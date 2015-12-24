@@ -14,15 +14,20 @@ var ONE_DAY_MS = 1000 * 60 * 60 * 24;
 var ONE_HOUR_MS = 1000 * 60 * 60;
 
 /**
- * Updates notification that the sheet has been edited
+ * Updates notification that the Roster sheet has been edited if it 
+ * has not already been set
  */
-function updateNotification(element) { 
-  // get date stamp
-  var now = new Date();
-  // update updated cell
-  setUpdated_(now.toString());
+function updateNotification(element) {
+  if(element && element.range && element.range.getSheet().getName() === 'Roster') {  
+    if(!isUpdated_()) {
+      // get date stamp
+      var now = new Date();
+      // update updated cell
+      setUpdated_(now.toString());
+    }
+  }
   
-  return now.toString();
+  return getUpdated_();
 }
 
 /**
@@ -69,7 +74,7 @@ function isUpdated_() {
 }
 
 function createTimeDrivenTriggerForNotification() {
-  // Trigger every 6 hours.
+  // Trigger every 6 hours
   ScriptApp.newTrigger('triggerNotification')
       .timeBased()
       .everyHours(6)
@@ -159,12 +164,21 @@ function getPlayerEmails_() {
 }
 
 /**
- * Sends emails
+ * Sends emails with this spreadsheet attached
  */
 function sendEmails_(recipients, subject, message) {
+  var file = DriveApp.getFileById(SPREADSHEET_DOCUMENT_ID);
+  var options = {
+    name: 'Tennis Roster',
+    attachments: [file.getAs(MimeType.PDF)] 
+  };
+  
+  message += '\n\nNOTE: Tennis roster attached in PDF format (ignore other sheets)';
+  
+  
   if(Array.isArray(recipients)) {
     for (i in recipients) {
-      MailApp.sendEmail(recipients[i], subject, message);
+      MailApp.sendEmail(recipients[i], subject, message, options);
     }
   }
 }
@@ -196,12 +210,11 @@ function test_getPlayerEmails() {
 }
 
 function test_updateNotification() {
-  // could fail if delayed
   var expected = (new Date()).toString();
   
   var actual = updateNotification(null);
 
-  GSUnit.assertEquals('Update notification', expected, actual);
+  GSUnit.assertNotEquals('Update notification', expected, actual);
 }
 
 function test_setUpdated() {

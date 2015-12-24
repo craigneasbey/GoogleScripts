@@ -36,7 +36,7 @@ function convertToArrayOfArrays(input) {
  * Note: this algorthm is good also:
  *  http://stackoverflow.com/questions/42519/how-do-you-rotate-a-two-dimensional-array (dimple)
  */
-function rotate(a, intDegrees ) {
+function rotate(a, intDegrees) {
     
   if(Array.isArray(a)) {
   

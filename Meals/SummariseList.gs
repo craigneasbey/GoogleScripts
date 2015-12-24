@@ -27,7 +27,9 @@ function summariseList(list) {
 }
 
 /**
- * 
+ * Summarise an item, removing all other items from the list that are the same
+ * eg. '3x Carrot,2x Carrot' becomes '5x Carrot'
+ * Note: Spelling has to be identical except for character case
  */
 function summariseItem(item, list) {
   
@@ -50,7 +52,7 @@ function summariseItem(item, list) {
 }
 
 /**
- * 
+ * Parse a shopping list item string into an object with count and name
  */
 function parseItem(item) {
   var rawItem = strip(item);
@@ -80,7 +82,7 @@ function parseItem(item) {
 }
 
 /**
- * 
+ * Remove white space from the end of a string and lower the case
  */
 function strip(string) {
   if(string) {
@@ -92,6 +94,8 @@ function strip(string) {
 }
        
 /**
+ * Checks if the variable is a number
+ *
  * http://stackoverflow.com/questions/18082/validate-decimal-numbers-in-javascript-isnumeric
  *
  * http://run.plnkr.co/plunks/93FPpacuIcXqqKMecLdk/
@@ -101,14 +105,14 @@ function isNumeric(n) {
 }
 
 /**
- * 
+ * Capitalise first character of string, then make the remaining characters lower case
  */
 function capitaliseFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
 }
 
 /**
- * 
+ * Output a shopping list item in the format '<COUNT>x <NAME>' eg. '2x Carrot'
  */
 function formatItem(itemObj) {
   return itemObj.count + 'x ' + itemObj.name;

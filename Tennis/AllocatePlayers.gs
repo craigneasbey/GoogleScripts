@@ -1,4 +1,4 @@
-                    /**
+/**
  * V1.0.1
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
