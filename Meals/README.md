@@ -6,7 +6,7 @@ Allows the user to:
 * remove items that have already been purchased
 * sort items
 
-  ## Details
+## Details
 * Field data validation is used to create a dropdown list from the Food column on other sheets
 * Example CSV sheets are included that demonstrate the format of the Google Sheet
 
