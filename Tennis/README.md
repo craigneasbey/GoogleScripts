@@ -5,7 +5,6 @@ Create a Google Apps Script file for configuation and add line:
 
 ```
 var SPREADSHEET_DOCUMENT_ID = '';
-
 ```
 with the document_id.
 
