@@ -1,5 +1,5 @@
 /**
- * V1.0.0
+ * V1.1.0
  */
  
 /**
@@ -38,8 +38,8 @@ function summariseItem(item, list) {
   for(var i = 0; i < list.length; i++) {
     var currentItem = parseItem(list[i]);
     
-    // merge items
-    if(itemObj.name === currentItem.name) {
+    // merge items, ignore trailing 's'
+    if(itemObj.name === currentItem.name || itemObj.name + 's' === currentItem.name || itemObj.name === currentItem.name + 's') {
       itemObj.count += currentItem.count;
       
       // remove matched item from list
@@ -131,7 +131,7 @@ function test_suite() {
 }
 
 function test_summariseList() {
-  var testList = ['2x Carrot', 'Carrot', 'Fruit', 'fruit ', '2x Tomato Paste Can'];
+  var testList = ['2x Carrot', 'Carrot', 'Fruit', 'fruits ', '2x Tomato Paste Can'];
   var expectedList = ['3x carrot', '2x fruit', '2x tomato paste can'];
   
   var actualList = summariseList(testList);
@@ -140,7 +140,7 @@ function test_summariseList() {
 }
 
 function test_summariseItem() {
-  var testList = ['2x Carrot', 'Carrot', 'Fruit', 'fruit '];
+  var testList = ['2x Carrot', 'Carrots', 'Fruit', 'fruit '];
   var testItem = '4x Carrot';
   var expectedItem = '7x carrot';
   
