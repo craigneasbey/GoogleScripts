@@ -137,7 +137,7 @@ function saveShoppingList_(shoppingList, spreadsheet) {
     // add Operation dropdown
     var operationColumn = shoppingListSheet.getRange(1, operationCol, shoppingList.length, 1);
     operationColumn.setValue("Show");
-    var operationArray = ['Show', 'Hide', 'Up', 'Down', 'Top', 'Bottom'];
+    var operationArray = ['Show', 'Hide', 'Top', 'Bottom', 'Up', 'Down'];
     var operationRule = SpreadsheetApp.newDataValidation().requireValueInList(operationArray, true).build();
     operationColumn.setDataValidation(operationRule);
     
