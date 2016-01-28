@@ -122,7 +122,7 @@ function saveShoppingList_(shoppingList, spreadsheet) {
     var operationCol = 1;
     var itemCol = 2;
     var lastColumn = itemCol;
-    var addRightPadding = 10;
+    var addRightPadding = 20; //display with dropdown arrow on mobile
     
     // clean the sheet (obsolete as sheet is deleted)
     //shoppingListSheet.clear();
