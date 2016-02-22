@@ -90,7 +90,7 @@ function triggerNotification() {
   if(result) {
     var subject = 'Tennis Roster Updated';
     var message = 'Please check the tennis roster as it has been recently updated:';
-    message += ' https://docs.google.com/spreadsheets/d/1GgrBVMG9XDi1oqsufmX1dGD9HCM_hDEAOpVvWGJTcF0/edit?usp=sharing';
+    message += ' https://docs.google.com/spreadsheets/d/' + SPREADSHEET_DOCUMENT_ID + '/edit?usp=sharing';
     
     emailPlayers_(subject, message);
     
