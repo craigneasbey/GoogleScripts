@@ -1,5 +1,5 @@
 /**
- * V1.0.2
+ * V1.0.3
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -89,8 +89,7 @@ function triggerNotification() {
   
   if(result) {
     var subject = 'Tennis Roster Updated';
-    var message = 'Please check the tennis roster as it has been recently updated:';
-    message += ' https://docs.google.com/spreadsheets/d/' + SPREADSHEET_DOCUMENT_ID + '/edit?usp=sharing';
+    var message = 'Please check the tennis roster as it has been recently updated.';
     
     emailPlayers_(subject, message);
     
@@ -174,6 +173,7 @@ function sendEmails_(recipients, subject, message) {
   };
   
   message += '\n\nNOTE: Tennis roster attached in PDF format (ignore other sheets)';
+  message += '\nhttps://docs.google.com/spreadsheets/d/' + SPREADSHEET_DOCUMENT_ID + '/edit?usp=sharing';
   
   var recipientsCSV = '';
   
