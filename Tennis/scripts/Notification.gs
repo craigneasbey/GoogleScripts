@@ -1,5 +1,5 @@
 /**
- * V1.0.3
+ * V1.0.4
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -166,6 +166,8 @@ function getPlayerEmails_() {
  * Sends emails with this spreadsheet attached
  */
 function sendEmails_(recipients, subject, message) {
+  refreshCurrentWeek(new Date());
+  
   var file = DriveApp.getFileById(SPREADSHEET_DOCUMENT_ID);
   var options = {
     name: 'Tennis Roster',

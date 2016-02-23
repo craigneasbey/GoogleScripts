@@ -1,5 +1,5 @@
 /**
- * V1.0.2
+ * V1.0.4
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -21,6 +21,8 @@ function onOpen() {
     {name: 'Email players...', functionName: 'emailPlayersMessage_'}
   ];
   spreadsheet.addMenu('Roster', menuItems);
+  
+  refreshCurrentWeek(new Date());
 }
 
 /**
@@ -100,24 +102,11 @@ function allocatePlayers_() {
     maxWeeksPlay = defaultFor_(maxWeeksPlay, DEFAULT_MAX_WEEKS_PLAY);
     maxWeeksRest = defaultFor_(maxWeeksRest, DEFAULT_MAX_WEEKS_REST);
     
+    // get the selected history
     var historyArray = getPlayersHistory_(maxWeeksPlay, maxWeeksRest, currentRange, currentSheet);
-    var currentColumnIndex = currentRange.getColumn();
-    var currentWidth = currentRange.getNumColumns();
     
-    var fillTeam = { "start" : 0 };
-    
-    // for each row(week) of the current range
-    for(var i=currentRange.getRow(); i < currentRange.getRow() + currentRange.getNumRows(); i++) {
-      var numOfRows = 1;
-      var currentRow = currentSheet.getRange(i, currentColumnIndex, numOfRows, currentWidth);
-      var currentRowArrayArray = currentRow.getValues();
-      
-      var weekArray = allocatePlayersForWeek(currentRowArrayArray[0], historyArray, maxWeeksPlay, maxWeeksRest, fillTeam);
-      
-      currentRow.setValues([weekArray]);
-      
-      historyArray = progressPlayersHistory_(historyArray, weekArray);
-    }
+    // allocate roster for selected players
+    allocateSelectedPlayers_(maxWeeksPlay, maxWeeksRest, historyArray, currentRange, currentSheet);
     
     // save
     SpreadsheetApp.flush();
@@ -184,6 +173,29 @@ function getPlayersHistory_(maxWeeksPlay, maxWeeksRest, currentRange, currentShe
   var historyArray = rotate(historyRowsValues, 90); // rotate array to the right
   
   return historyArray;
+}
+
+/*
+ * Allocate players for selected roster
+ */
+function allocateSelectedPlayers_(maxWeeksPlay, maxWeeksRest, historyArray, currentRange, currentSheet)
+{
+    var currentColumnIndex = currentRange.getColumn();
+    var currentWidth = currentRange.getNumColumns();
+    var fillTeam = { "start" : 0 };
+    
+    // for each row(week) of the current range
+    for(var i=currentRange.getRow(); i < currentRange.getRow() + currentRange.getNumRows(); i++) {
+      var numOfRows = 1;
+      var currentRow = currentSheet.getRange(i, currentColumnIndex, numOfRows, currentWidth);
+      var currentRowArrayArray = currentRow.getValues();
+      
+      var weekArray = allocatePlayersForWeek(currentRowArrayArray[0], historyArray, maxWeeksPlay, maxWeeksRest, fillTeam);
+      
+      currentRow.setValues([weekArray]);
+      
+      historyArray = progressPlayersHistory_(historyArray, weekArray);
+    }
 }
 
 /**
@@ -270,5 +282,4 @@ function test_generateDates() {
 function test_allocatePlayers() {
   allocatePlayers_();
 }
-
 
