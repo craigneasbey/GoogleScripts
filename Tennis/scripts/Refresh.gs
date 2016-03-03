@@ -1,5 +1,5 @@
 /**
- * V1.0.0
+ * V1.0.1
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -77,7 +77,8 @@ function getNumContentColumns(rowArray) {
 }
 
 /**
- * Find the current week index in the roster
+ * Find the current or next week index in the roster
+ * if it is after the date, move to the next week
  */
 function findCurrentWeekIndex(weekDates, now) {
   var currentWeekIndex = 0;
@@ -93,10 +94,6 @@ function findCurrentWeekIndex(weekDates, now) {
       var result = compareDates(now, weekDate);
       if(result <= 0) {
         currentWeekIndex = i;
-        
-        if(result < 0) {
-          currentWeekIndex--;
-        }
   
         // exit loop
         found = true;
@@ -150,16 +147,17 @@ function test_findCurrentWeekIndex() {
   testArray[5] = new Array("08 Mar 2016");
   
   // AEDT(13) or AEST(14)
-  var testDate = new Date(Date.UTC(2016, 1, 22, 13, 0, 0));
+  var testDate = new Date(Date.UTC(2016, 1, 22, 13, 0, 0)); // 23 Feb 2016
   
   var expected = 3;
   var actual = findCurrentWeekIndex(testArray, testDate);
   
   GSUnit.assert('Current week on day', actual === expected);
   
-  var testDate = new Date(Date.UTC(2016, 1, 16, 13, 0, 0));
+  // AEDT(13) or AEST(14)
+  testDate = new Date(Date.UTC(2016, 1, 18, 13, 0, 0)); // 19 Feb 2016
   
-  expected = 2;
+  expected = 3;
   actual = findCurrentWeekIndex(testArray, testDate);
   
   GSUnit.assert('Current week off day', actual === expected);
