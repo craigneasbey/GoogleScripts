@@ -1,5 +1,5 @@
 /**
- * V1.0.4
+ * V1.0.5
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -21,8 +21,6 @@ function onOpen() {
     {name: 'Email players...', functionName: 'emailPlayersMessage_'}
   ];
   spreadsheet.addMenu('Roster', menuItems);
-  
-  refreshCurrentWeek(new Date());
 }
 
 /**

@@ -1,5 +1,5 @@
 /**
- * V1.0.2
+ * V1.0.3
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -18,6 +18,22 @@ var MAX_ROWS = 1000; // arbitrary number
 var ROSTER_SHEET_NAME = 'Roster';
 if(TESTING_REFRESH) {
   ROSTER_SHEET_NAME = 'IGNORE - TESTING ONLY';
+}
+
+function createTimeDrivenTriggerForRefresh() {
+  // Trigger at 2am everyday
+  ScriptApp.newTrigger('triggerRefresh')
+      .timeBased()
+      .atHour(2)
+      .everyDays(1)
+      .create();
+}
+
+/**
+ * Run from a installed trigger to notify the team member if the sheet has updated
+ */
+function triggerRefresh() {
+  refreshCurrentWeek(new Date());
 }
 
 /**
@@ -171,3 +187,4 @@ function test_refreshCurrentWeek() {
   //refreshCurrentWeek(new Date(Date.UTC(2016, 1, 17, 13, 0, 0)));
   //refreshCurrentWeek(new Date(Date.UTC(2016, 0, 3, 13, 0, 0)));
 }
+
