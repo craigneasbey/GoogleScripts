@@ -1,5 +1,5 @@
 /**
- * V1.0.1
+ * V1.0.2
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -42,7 +42,7 @@ function refreshCurrentWeek(now) {
   var rosterRange = rosterSheet.getRange(FIRST_ROSTER_ROW,DATE_COLUMN,MAX_ROWS,numOfColumns);
   
   // clear highlighting on week rows
-  rosterRange.setBackground('white');
+  rosterRange.clearFormat();
   
   var weekDates = rosterRange.getValues();
   var weekRowIndex = findCurrentWeekIndex(weekDates, now);
