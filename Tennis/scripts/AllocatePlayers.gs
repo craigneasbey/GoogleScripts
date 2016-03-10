@@ -1,5 +1,5 @@
 /**
- * V1.0.1
+ * V1.0.2
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -25,8 +25,8 @@ function allocatePlayersForWeek(currentArray, playersHistoryArray, maxWeeksPlay,
     // for each player
     for(var i=0; i < currentArray.length && i < playersHistoryArray.length; i++) {
       var result = allocatePlayerForWeek_(currentArray[i], playersHistoryArray[i], maxWeeksPlay, maxWeeksRest);
-      if(result === PLAY) {
-        if(playCount >= MAX_PLAYERS) {
+      if(result === ROSTERED) {
+        if(playCount >= MAX_TEAM_MEMBERS) {
           result = COULD_BE_AVAILABLE;
         } else {
           playCount++;
@@ -38,8 +38,8 @@ function allocatePlayersForWeek(currentArray, playersHistoryArray, maxWeeksPlay,
     // for each player
     for(var i=0; i < currentArray.length; i++) {
       var result = allocatePlayerForWeek_(currentArray[i], new Array(""));
-      if(result === PLAY) {
-        if(playCount >= MAX_PLAYERS) {
+      if(result === ROSTERED) {
+        if(playCount >= MAX_TEAM_MEMBERS) {
           result = COULD_BE_AVAILABLE;
         } else {
           playCount++;
@@ -49,11 +49,13 @@ function allocatePlayersForWeek(currentArray, playersHistoryArray, maxWeeksPlay,
     }
   }
   
+  fillTeam = defaultFor_(fillTeam, { "start" : 0 });
+  
   Logger.log('fillTeam: ' + fillTeam.start);
    
-  // if there are not enough players allocated, change COULD_BE_AVAILABLE to PLAY
+  // if there are not enough players allocated, change COULD_BE_AVAILABLE to ROSTERED
   // start on player playerIncrement
-  if(playCount !== MAX_PLAYERS) {
+  if(playCount !== MAX_TEAM_MEMBERS) {
     if(resultArray && Array.isArray(resultArray)) {
       var needPlayers = true;
       var needPlayerLoops = 0;
@@ -75,15 +77,15 @@ function allocatePlayersForWeek(currentArray, playersHistoryArray, maxWeeksPlay,
       }
       
       while(needPlayers) {
-        for(var i=start; i < resultArray.length && playCount < MAX_PLAYERS; i++) {
+        for(var i=start; i < resultArray.length && playCount < MAX_TEAM_MEMBERS; i++) {
           Logger.log('i: ' + i + ' playCount: ' + playCount);
           if(resultArray[i] === COULD_BE_AVAILABLE) {
-            resultArray[i] = PLAY;
+            resultArray[i] = ROSTERED;
             playCount++;
           }
         }
 
-        if(playCount === MAX_PLAYERS) {
+        if(playCount === MAX_TEAM_MEMBERS) {
           needPlayers = false;
         } else {
           // has all players been checked?
@@ -102,9 +104,9 @@ function allocatePlayersForWeek(currentArray, playersHistoryArray, maxWeeksPlay,
     }
   }
   
-  // if array is empty, fill array with PLAY until MAX_PLAYERS
+  // if array is empty, fill array with ROSTERED until MAX_TEAM_MEMBERS
   if(resultArray.length == 0) {
-    resultArray.push(PLAY);
+    resultArray.push(ROSTERED);
   }
   
   return resultArray;
@@ -130,12 +132,12 @@ function allocatePlayerForWeek_(currentWeek, historyArray, maxWeeksPlay, maxWeek
     //Logger.log('maxWeeksPlay: ' + maxWeeksPlay);
     
     for(var i=0; i < historyArray.length && ( i < maxWeeksPlay || i < maxWeeksRest); i++) {
-      if(historyArray[i] === PLAY) {
+      if(historyArray[i] === ROSTERED) {
         playCount++;
         
         if(restCount > 0) {
           if(restCount >= maxWeeksRest) {
-            return PLAY;
+            return ROSTERED;
           } else {
             return COULD_BE_AVAILABLE;
           }
@@ -147,7 +149,7 @@ function allocatePlayerForWeek_(currentWeek, historyArray, maxWeeksPlay, maxWeek
           if(playCount >= maxWeeksPlay) {
             return COULD_BE_AVAILABLE;
           } else {
-            return PLAY;
+            return ROSTERED;
           }
         }
       }
@@ -158,11 +160,11 @@ function allocatePlayerForWeek_(currentWeek, historyArray, maxWeeksPlay, maxWeek
     }
     
     if(restCount == maxWeeksRest) {
-      return PLAY;
+      return ROSTERED;
     }
   }
   
-  return PLAY;
+  return ROSTERED;
 }
 
 /**

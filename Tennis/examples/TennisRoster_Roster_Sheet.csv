@@ -1,8 +1,9 @@
-Title
-Info
-Info
+<Title>
+<Info>
+<Info>
 ,Player 1,Player 2,Player 3,Player 4,Player 5,Player 6
 ,player1@email.com,player2@email.com,player3@email.com,player4@email.com,player5@email.com,player6@email.com
+Reminder,Yes,Yes,Yes,Yes,Yes,Yes
 03 Nov 2015,CBA,Play,CBA,Play,Play,Play
 10 Nov 2015,Play,Play,Play,CBA,CBA,Play
 17 Nov 2015,Play,CBA,Play,Play,Play,CBA

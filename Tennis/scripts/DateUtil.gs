@@ -1,5 +1,5 @@
 /**
- * V1.0.0
+ * V1.0.1
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -10,7 +10,9 @@
 
 var TESTING_DATES = false;
 
+var ONE_DAY_MS = 1000 * 60 * 60 * 24;
 var ONE_HOUR_MS = 1000 * 60 * 60;
+var ONE_MINUTE_MS = 100 * 60;
 
 /**
  * Compare dates, if equal return 0, greater than 1, less than -1
@@ -111,4 +113,23 @@ function test_equalWithinTolerance() {
   actual = equalWithinTolerance(testData1,testData2, 5);
   
   GSUnit.assert('Equal 100 = 71, Tol 5', actual === expected);
+  
+  // AEDT(13) or AEST(14)
+  testData1 = new Date(Date.UTC(2015, 11, 27, 13, 0, 0)); // 28/12/2015
+  testData2 = new Date(Date.UTC(2015, 11, 28, 13, 0, 0)); // 29/12/2015
+
+  actual = equalWithinTolerance(testData1.getTime(), testData2.getTime(), ONE_DAY_MS + ONE_DAY_MS);
+  
+  GSUnit.assertTrue('Equal within 2 days', actual);
+
+  actual = equalWithinTolerance(testData1.getTime(), testData2.getTime(), ONE_MINUTE_MS);
+  
+  GSUnit.assertFalse('Equal within 1 minute', actual);
+  
+  // AEDT(13) or AEST(14)
+  testData2 = new Date(Date.UTC(2015, 11, 28, 0, 0, 0)); // 28/12/2015 11:00:00
+  
+  actual = equalWithinTolerance(testData1.getTime(), testData2.getTime(), ONE_DAY_MS);
+  
+  GSUnit.assertTrue('Equal within 1 day', actual);
 }

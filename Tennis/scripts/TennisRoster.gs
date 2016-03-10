@@ -1,5 +1,5 @@
 /**
- * V1.0.5
+ * V1.0.6
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -9,6 +9,15 @@
  */
 
 var TESTING_ROSTER = false;
+
+var EMPTY = '';
+var ROSTERED = 'Play';
+var COULD_BE_AVAILABLE = 'CBA';
+var NOT_AVAILABLE = 'NA';
+var DEFAULT_YEAR = getStrConfig("DEFAULT_YEAR", "2016");
+var MAX_TEAM_MEMBERS = getNumConfig("MAX_TEAM_MEMBERS", 4);
+var DEFAULT_MAX_WEEKS_ROSTERED = getNumConfig("DEFAULT_MAX_WEEKS_ROSTERED", 2); // maximum consecutive weeks rostered
+var DEFAULT_MAX_WEEKS_REST = getNumConfig("DEFAULT_MAX_WEEKS_REST", 1); // maximum consecutive weeks resting
 
 /**
  * Runs when the spreadsheet is open, adds a menu to the spreadsheet
@@ -29,20 +38,20 @@ function onOpen() {
 function onEdit(e) {
   //Logger.log("onEdit: " + JSON.stringify(e));
   
-  updateNotification(e);
+  checkUpdated(e);
 }
 
 /**
  * Generate Dates for players schedule
  */
 function generateDates_() {
-  var DEFAULT_YEAR = 2016;
+  var defaultYear = DEFAULT_YEAR;
 
-  var year = openEntryDialog_('Generate Dates', 'Enter year (default ' + DEFAULT_YEAR + '):');
+  var year = openEntryDialog_('Generate Dates', 'Enter year (default ' + defaultYear + '):');
   Logger.log('year: ' + year);
   
   if(year !== 'CANCEL') {
-    year = defaultFor_(year, DEFAULT_YEAR);
+    year = defaultFor_(year, defaultYear);
     
     var html = HtmlService.createHtmlOutputFromFile('dates.html')
     .setTitle('Year ' + year + ' Dates').setSandboxMode(HtmlService.SandboxMode.IFRAME);
@@ -50,15 +59,6 @@ function generateDates_() {
     SpreadsheetApp.getUi().showSidebar(html);
   }
 }
-
-
-var EMPTY = '';
-var PLAY = 'Play';
-var COULD_BE_AVAILABLE = 'CBA';
-var NOT_AVAILABLE = 'NA';
-var MAX_PLAYERS = 4;
-var DEFAULT_MAX_WEEKS_PLAY = 2; // maximum consecutive weeks playing
-var DEFAULT_MAX_WEEKS_REST = 1; // maximum consecutive weeks resting
 
 /**
  * Generate Roster for players schedule
@@ -79,7 +79,7 @@ function allocatePlayers_() {
     
     // get configuration
     if(!TESTING_ROSTER) {
-      var promptText = 'Enter maximum consecutive weeks playing (default ' + DEFAULT_MAX_WEEKS_PLAY + '):';
+      var promptText = 'Enter maximum consecutive weeks playing (default ' + DEFAULT_MAX_WEEKS_ROSTERED + '):';
       var maxWeeksPlay = openEntryDialog_('Allocation Configuration', promptText);
       
       if(maxWeeksPlay === 'CANCEL') {
@@ -93,11 +93,11 @@ function allocatePlayers_() {
         return;
       }
     } else {
-      var maxWeeksPlay = DEFAULT_MAX_WEEKS_PLAY;
+      var maxWeeksPlay = DEFAULT_MAX_WEEKS_ROSTERED;
       var maxWeeksRest = DEFAULT_MAX_WEEKS_REST;
     }
     
-    maxWeeksPlay = defaultFor_(maxWeeksPlay, DEFAULT_MAX_WEEKS_PLAY);
+    maxWeeksPlay = defaultFor_(maxWeeksPlay, DEFAULT_MAX_WEEKS_ROSTERED);
     maxWeeksRest = defaultFor_(maxWeeksRest, DEFAULT_MAX_WEEKS_REST);
     
     // get the selected history

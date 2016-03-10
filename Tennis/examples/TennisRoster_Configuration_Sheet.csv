@@ -1,0 +1,16 @@
+Key,Value,Description
+DEFAULT_YEAR,2016,Default year for generating dates
+REMINDERS,TRUE,Enable email reminders
+UPDATE_CHECK_HOUR,6,How often to check if the roster was updated and email
+REMINDER_CHECK_HOUR,6,How often to check if the reminders need to be sent
+REMINDER_SEND_BEFORE_DAYS,1,How many days to send the reminder before the week date
+REFRESH_CHECK_HOUR,2,How often to refresh the highlighted current week row
+REFRESH_CHECK_DAYS,1,How often to refresh the highlighted current week row
+MEMBER_NAME_ROW,4,Spreadsheet row with member names
+MEMBER_EMAIL_ROW,5,Spreadsheet row with member email addresses
+FIRST_ROSTER_ROW,7,Spreadsheet first roster row
+MAX_TEAM_MEMBERS,4,Maximum number of team members allocated for one week
+DEFAULT_MAX_WEEKS_ROSTERED,2,Default maximum consecutive weeks rostered on
+DEFAULT_MAX_WEEKS_REST,1,Default maximum consecutive weeks rostered off
+MAX_ROSTER_ROWS,1000,Maximum rows to search for roster values
+MAX_MEMBER_COLUMNS,100,Maximum columns to search for members

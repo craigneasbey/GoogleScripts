@@ -1,5 +1,5 @@
 /**
- * V1.0.3
+ * V1.0.4
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -10,10 +10,13 @@
 
 var TESTING_REFRESH = false;
 
-var PLAYER_NAME_ROW = 4;
-var FIRST_ROSTER_ROW = 6; // the first week roster row
+var PLAYER_NAME_ROW = getNumConfig("MEMBER_NAME_ROW", 4);
+var FIRST_ROSTER_ROW = getNumConfig("FIRST_ROSTER_ROW", 6); // the first week roster row
 var DATE_COLUMN = 1; // the first column is the week date
-var MAX_ROWS = 1000; // arbitrary number
+var MAX_ROSTER_ROWS = getNumConfig("MAX_ROSTER_ROWS", 1000); // arbitrary number
+var MAX_MEMBER_COLUMNS = getNumConfig("MAX_MEMBER_COLUMNS", 100); // arbitrary number
+var REFRESH_CHECK_HOUR = getNumConfig("REFRESH_CHECK_HOUR", 2);
+var REFRESH_CHECK_DAYS = getNumConfig("REFRESH_CHECK_DAYS", 1);
 
 var ROSTER_SHEET_NAME = 'Roster';
 if(TESTING_REFRESH) {
@@ -21,11 +24,11 @@ if(TESTING_REFRESH) {
 }
 
 function createTimeDrivenTriggerForRefresh() {
-  // Trigger at 2am everyday
+  // Trigger REFRESH_CHECK_DAYS at REFRESH_CHECK_HOUR
   ScriptApp.newTrigger('triggerRefresh')
       .timeBased()
-      .atHour(2)
-      .everyDays(1)
+      .atHour(REFRESH_CHECK_HOUR)
+      .everyDays(REFRESH_CHECK_DAYS)
       .create();
 }
 
@@ -37,25 +40,31 @@ function triggerRefresh() {
 }
 
 /**
+ * Get the number of players
+ */
+function getNumOfPlayers(rosterSheet) {  
+  var NAME_START_COLUMN = 2;
+  var NUM_OF_ROWS = 1;
+  var NUM_OF_COLS = MAX_MEMBER_COLUMNS;
+  
+  var nameRange = rosterSheet.getRange(PLAYER_NAME_ROW,NAME_START_COLUMN,NUM_OF_ROWS,NUM_OF_COLS);
+  var names = nameRange.getValues();
+  
+  return getNumContentColumns(names);
+}
+
+/**
  * Find the current week and highlight it in light grey
  */
 function refreshCurrentWeek(now) { 
   var currentSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   var rosterSheet = currentSpreadsheet.getSheetByName(ROSTER_SHEET_NAME);
   
-  // get number of players
-  var NAME_START_COLUMN = 2;
-  var NUM_OF_ROWS = 1;
-  var NUM_OF_COLS = 100; // arbitrary number
-  
-  var nameRange = rosterSheet.getRange(PLAYER_NAME_ROW,NAME_START_COLUMN,NUM_OF_ROWS,NUM_OF_COLS);
-  var names = nameRange.getValues();
-  
-  var numOfPlayers = getNumContentColumns(names);
+  var numOfPlayers = getNumOfPlayers(rosterSheet);
   var numOfColumns = numOfPlayers + 1; // add date column
   
   // get all roster weeks
-  var rosterRange = rosterSheet.getRange(FIRST_ROSTER_ROW,DATE_COLUMN,MAX_ROWS,numOfColumns);
+  var rosterRange = rosterSheet.getRange(FIRST_ROSTER_ROW,DATE_COLUMN,MAX_ROSTER_ROWS,numOfColumns);
   
   // clear highlighting on week rows
   rosterRange.clearFormat();
@@ -99,12 +108,13 @@ function getNumContentColumns(rowArray) {
 function findCurrentWeekIndex(weekDates, now) {
   var currentWeekIndex = 0;
   var found = false;
+  var DATE_COLUMN_INDEX = 0;
   
   if(Array.isArray(weekDates)) {
     // for each week, until the current week is found
     for(var i=0; i < weekDates.length && !found; i++) {
       // get date from row
-      var weekDate = parseDate(weekDates[i][0]);
+      var weekDate = parseDate(weekDates[i][DATE_COLUMN_INDEX]);
     
       // if current date is greater than or equal to row date
       var result = compareDates(now, weekDate);
@@ -119,6 +129,7 @@ function findCurrentWeekIndex(weekDates, now) {
   
   return currentWeekIndex;
 }
+
 
 /**
  * Tests
