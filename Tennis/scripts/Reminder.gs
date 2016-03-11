@@ -1,5 +1,5 @@
 /**
- * V1.0.2
+ * V1.0.3
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -39,12 +39,21 @@ function triggerReminder() {
     if(Array.isArray(currentWeek)) {
       var result = checkReminderRequired_(now, currentWeek[0]); // get current week date
       
+      if(TESTING_REMINDER) {
+        result = true;
+      }
+      
       if(result) {
         var subject = REMINDER_SUBJECT;
         var message = REMINDER_MESSAGE;
         
         var playerColumns = getRosteredPlayerColumns_(currentWeek);
         var recipients = getIndividualPlayerEmails_(playerColumns);
+        
+        if(TESTING_REMINDER) {
+          message += '\nrecipients: ' + recipients + '\n';
+          recipients = [Session.getActiveUser().getEmail()];
+        }
         
         sendEmail_(recipients, subject, message);
         
@@ -178,13 +187,21 @@ function isRemindered_() {
 
 
 /**
- * Manual Tests (relies on Roster and Updated sheet values)
+ * Manual Tests (relies on Roster and Updated sheet values,
+ * TESTING_REMINDER should be set to true before running
+ * some individual tests)
  */
 function test_manual_reminder_suite() {
   test_setReminder();
   test_isRemindered();
   test_checkReminderRequired();
   test_getRosteredPlayerColumns();
+  
+  TESTING_REMINDER = true;
+  
+  test_triggerReminder();
+  
+  TESTING_REMINDER = false;
 }
 
 function test_setReminder() {
@@ -285,5 +302,9 @@ function test_getRosteredPlayerColumns() {
   actualArray = getRosteredPlayerColumns_(testArray);
   
   GSUnit.assertArrayEquals('Rostered Player Columns null', expectedArray, actualArray);
+}
+
+function test_triggerReminder() {
+  triggerReminder();
 }
 
