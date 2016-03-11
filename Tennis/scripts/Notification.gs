@@ -5,7 +5,7 @@
  *
  * Could change logging to https://github.com/peterherrmann/BetterLog
  *
- * Created by craigneasbey
+ * Created by craigneasbey (https://github.com/craigneasbey/GoogleScripts/tree/master/Tennis)
  */
 
 var TESTING_NOTIFICATION = false;

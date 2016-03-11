@@ -1,17 +1,18 @@
 /**
- * V1.0.1
+ * V1.0.2
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
  * Could change logging to https://github.com/peterherrmann/BetterLog
  *
- * Created by craigneasbey
+ * Created by craigneasbey (https://github.com/craigneasbey/GoogleScripts/tree/master/Tennis)
  */
 
 var TESTING_REMINDER = false;
 
 var REMINDERS = getBoolConfig("REMINDERS", true);
 var REMINDER_SEND_BEFORE_DAYS = getNumConfig("REMINDER_SEND_BEFORE_DAYS", 1);
+var REMINDER_CHECK_HOUR = getNumConfig("REMINDER_CHECK_HOUR", 6);
 var REMINDER_SUBJECT = getStrConfig("REMINDER_SUBJECT", 'Tennis Roster Reminder');
 var REMINDER_MESSAGE = getStrConfig("REMINDER_MESSAGE", 'This is a reminder that you are rostered on to play tennis this week.');
 
