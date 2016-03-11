@@ -1,9 +1,17 @@
 Key,Value,Description
 DEFAULT_YEAR,2016,Default year for generating dates
 REMINDERS,TRUE,Enable email reminders
-UPDATE_CHECK_HOUR,6,How often to check if the roster was updated and email
+NOTIFICATION_SENDER_NAME,Tennis Roster,Notification email sender name
+NOTIFICATION_MESSAGE_FOOTER,"
+
+NOTE: Tennis roster attached in PDF format (ignore other sheets)",Notification email message footer
+UPDATED_CHECK_HOUR,6,How often to check if the roster was updated and email
+UPDATED_SUBJECT,Tennis Roster Updated,Updated notification email subject
+UPDATED_MESSAGE,Please check the tennis roster as it has been recently updated.,Updated notification email message
 REMINDER_CHECK_HOUR,6,How often to check if the reminders need to be sent
 REMINDER_SEND_BEFORE_DAYS,1,How many days to send the reminder before the week date
+REMINDER_SUBJECT,Tennis Roster Reminder,Reminder notification email subject
+REMINDER_MESSAGE,This is a reminder that you are rostered on to play tennis this week.,Reminder notification email message
 REFRESH_CHECK_HOUR,2,How often to refresh the highlighted current week row
 REFRESH_CHECK_DAYS,1,How often to refresh the highlighted current week row
 MEMBER_NAME_ROW,4,Spreadsheet row with member names
@@ -14,3 +22,8 @@ DEFAULT_MAX_WEEKS_ROSTERED,2,Default maximum consecutive weeks rostered on
 DEFAULT_MAX_WEEKS_REST,1,Default maximum consecutive weeks rostered off
 MAX_ROSTER_ROWS,1000,Maximum rows to search for roster values
 MAX_MEMBER_COLUMNS,100,Maximum columns to search for members
+ROSTERED,Play,
+COULD_BE_AVAILABLE,CBA,
+NOT_AVAILABLE,NA,
+MENU_ITEM_ALLOCATE,Allocate players...,
+MENU_ITEM_EMAIL,Email players...,

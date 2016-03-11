@@ -1,5 +1,5 @@
 /**
- * V1.0.6
+ * V1.0.7
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -11,13 +11,15 @@
 var TESTING_ROSTER = false;
 
 var EMPTY = '';
-var ROSTERED = 'Play';
-var COULD_BE_AVAILABLE = 'CBA';
-var NOT_AVAILABLE = 'NA';
+var ROSTERED = getStrConfig("ROSTERED", 'Play');
+var COULD_BE_AVAILABLE = getStrConfig("COULD_BE_AVAILABLE", 'CBA');
+var NOT_AVAILABLE = getStrConfig("NOT_AVAILABLE", 'NA');
 var DEFAULT_YEAR = getStrConfig("DEFAULT_YEAR", "2016");
 var MAX_TEAM_MEMBERS = getNumConfig("MAX_TEAM_MEMBERS", 4);
 var DEFAULT_MAX_WEEKS_ROSTERED = getNumConfig("DEFAULT_MAX_WEEKS_ROSTERED", 2); // maximum consecutive weeks rostered
 var DEFAULT_MAX_WEEKS_REST = getNumConfig("DEFAULT_MAX_WEEKS_REST", 1); // maximum consecutive weeks resting
+var MENU_ITEM_ALLOCATE = getStrConfig("MENU_ITEM_ALLOCATE", 'Allocate players...');
+var MENU_ITEM_EMAIL = getStrConfig("MENU_ITEM_EMAIL", 'Email players...');
 
 /**
  * Runs when the spreadsheet is open, adds a menu to the spreadsheet
@@ -26,8 +28,8 @@ function onOpen() {
   var spreadsheet = SpreadsheetApp.getActive();
   var menuItems = [
     {name: 'Generate dates...', functionName: 'generateDates_'},
-    {name: 'Allocate players...', functionName: 'allocatePlayers_'},
-    {name: 'Email players...', functionName: 'emailPlayersMessage_'}
+    {name: MENU_ITEM_ALLOCATE, functionName: 'allocatePlayers_'},
+    {name: MENU_ITEM_EMAIL, functionName: 'emailPlayersMessage_'}
   ];
   spreadsheet.addMenu('Roster', menuItems);
 }
@@ -79,7 +81,7 @@ function allocatePlayers_() {
     
     // get configuration
     if(!TESTING_ROSTER) {
-      var promptText = 'Enter maximum consecutive weeks playing (default ' + DEFAULT_MAX_WEEKS_ROSTERED + '):';
+      var promptText = 'Enter maximum consecutive weeks rostered (default ' + DEFAULT_MAX_WEEKS_ROSTERED + '):';
       var maxWeeksPlay = openEntryDialog_('Allocation Configuration', promptText);
       
       if(maxWeeksPlay === 'CANCEL') {
@@ -119,7 +121,7 @@ function openCheckDialog_(currentRange) {
   var ui = SpreadsheetApp.getUi(),
       response = ui.alert(
         'Roster Range Selected', 
-        'The current selected range is: ' + currentRange.getA1Notation() + '.\n\n Are you sure you want to continue allocating players in that range?', 
+        'The current selected range is: ' + currentRange.getA1Notation() + '.\n\n Are you sure you want to continue allocating rostered members in that range?', 
         ui.ButtonSet.YES_NO);
 
  // Process the user's response.
@@ -236,6 +238,11 @@ function emailPlayersMessage_() {
 /**
  * Tests
  */
+function test_roster_suite() {
+  test_progressPlayersHistory();
+}
+
+
 function test_progressPlayersHistory() {
   
   var testArray = new Array("NA","Play","Play","Play","NA","NA","CBA","NA","NA","Play");

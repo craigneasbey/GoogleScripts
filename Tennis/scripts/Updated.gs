@@ -1,5 +1,5 @@
 /**
- * V1.0.0
+ * V1.0.1
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -13,13 +13,15 @@ var TESTING_UPDATED = false;
 var UPDATED_SHEET_NAME = 'Updated';
 var UPDATED_UPDATED_ROW = 1;
 var UPDATED_REMINDER_ROW = 2;
-var UPDATE_CHECK_HOUR = getNumConfig("UPDATE_CHECK_HOUR", 6);
+var UPDATED_CHECK_HOUR = getNumConfig("UPDATED_CHECK_HOUR", 6);
+var UPDATED_SUBJECT = getStrConfig("UPDATED_SUBJECT", 'Tennis Roster Updated');
+var UPDATED_MESSAGE = getStrConfig("UPDATED_MESSAGE", 'Please check the tennis roster as it has been recently updated.');
 
 function createTimeDrivenTriggerForUpdated() {
-  // Trigger every UPDATE_CHECK_HOUR hours
+  // Trigger every UPDATED_CHECK_HOUR hours
   ScriptApp.newTrigger('triggerUpdated')
       .timeBased()
-      .everyHours(UPDATE_CHECK_HOUR)
+      .everyHours(UPDATED_CHECK_HOUR)
       .create();
 }
 
@@ -31,8 +33,8 @@ function triggerUpdated() {
   var result = checkUpdatedNotificationRequired_(now);
   
   if(result) {
-    var subject = 'Tennis Roster Updated';
-    var message = 'Please check the tennis roster as it has been recently updated.';
+    var subject = UPDATED_SUBJECT;
+    var message = UPDATED_MESSAGE;
     
     emailPlayers_(subject, message);
     

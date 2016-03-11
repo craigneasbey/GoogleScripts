@@ -1,5 +1,5 @@
 /**
- * V1.0.0
+ * V1.0.1
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -10,7 +10,10 @@
 
 var TESTING_REMINDER = false;
 
+var REMINDERS = getBoolConfig("REMINDERS", true);
 var REMINDER_SEND_BEFORE_DAYS = getNumConfig("REMINDER_SEND_BEFORE_DAYS", 1);
+var REMINDER_SUBJECT = getStrConfig("REMINDER_SUBJECT", 'Tennis Roster Reminder');
+var REMINDER_MESSAGE = getStrConfig("REMINDER_MESSAGE", 'This is a reminder that you are rostered on to play tennis this week.');
 
 function createTimeDrivenTriggerForReminder() {
   // Trigger every REMINDER_CHECK_HOUR hours
@@ -24,26 +27,29 @@ function createTimeDrivenTriggerForReminder() {
  * Run from a installed trigger to notify players if they are
  * roster on for this week
  */
-function triggerReminder() {
+function triggerReminder() {  
   var result = false;
   
-  var now = new Date();
-  var currentWeek = getCurrentWeek_(now);
-  
-  if(Array.isArray(currentWeek)) {
-    var result = checkReminderRequired_(now, currentWeek[0]); // get current week date
+  // configuration enables all reminders
+  if(REMINDERS) {
+    var now = new Date();
+    var currentWeek = getCurrentWeek_(now);
     
-    if(result) {
-      var subject = 'Tennis Roster Reminder';
-      var message = 'This is a reminder that you are rostered on to play tennis this week.';
+    if(Array.isArray(currentWeek)) {
+      var result = checkReminderRequired_(now, currentWeek[0]); // get current week date
       
-      var playerColumns = getRosteredPlayerColumns_(currentWeek);
-      var recipients = getIndividualPlayerEmails_(playerColumns);
-      
-      sendEmail_(recipients, subject, message);
-      
-      // set reminder sent
-      setReminder_(now.toString());
+      if(result) {
+        var subject = REMINDER_SUBJECT;
+        var message = REMINDER_MESSAGE;
+        
+        var playerColumns = getRosteredPlayerColumns_(currentWeek);
+        var recipients = getIndividualPlayerEmails_(playerColumns);
+        
+        sendEmail_(recipients, subject, message);
+        
+        // set reminder sent
+        setReminder_(now.toString());
+      }
     }
   }
   
@@ -171,9 +177,7 @@ function isRemindered_() {
 
 
 /**
- * Manual Tests (relies on Roster and Updated sheet values,
- * TESTING_NOTIFICATION should be set to true before running
- * some individual tests)
+ * Manual Tests (relies on Roster and Updated sheet values)
  */
 function test_manual_reminder_suite() {
   test_setReminder();
@@ -211,8 +215,7 @@ function test_isRemindered() {
 }
 
 function test_checkReminderRequired() {
-  // AEDT(13) or AEST(14)
-  var now = new Date(Date.UTC(2016, 1, 21, 19, 0, 0)); // 22 Feb 2016 06:00:00
+  var now = createLocalDate(2016, 2, 22, 6, 0, 0);
   var weekValue = "23 Feb 2016";
   var testDate = '';
   setReminder_(testDate);
@@ -236,22 +239,19 @@ function test_checkReminderRequired() {
   
   GSUnit.assertFalse('Within a date, reminder set', actual);
   
-  // AEDT(13) or AEST(14)
-  now = new Date(Date.UTC(2016, 1, 21, 13, 0, 0)); // 22 Feb 2016
+  now = createLocalDate(2016, 2, 22, 0, 0, 0);
   
   actual = checkReminderRequired_(now, weekValue);
 
   GSUnit.assertFalse('Older than a day', actual);
   
-  // AEDT(13) or AEST(14)
-  now = new Date(Date.UTC(2016, 1, 23, 7, 0, 0)); // 23 Feb 2016 18:00:00
+  now = createLocalDate(2016, 2, 23, 18, 0, 0);
   
   actual = checkReminderRequired_(now, weekValue);
 
   GSUnit.assertTrue('Within a date, newer than a day', actual);
   
-  // AEDT(13) or AEST(14)
-  now = new Date(Date.UTC(2016, 1, 25, 13, 0, 0)); // 26 Feb 2016
+  now = createLocalDate(2016, 2, 26, 6, 0, 0);
   
   actual = checkReminderRequired_(now, weekValue);
 

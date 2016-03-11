@@ -1,5 +1,5 @@
 /**
- * V1.0.6
+ * V1.0.7
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -10,10 +10,10 @@
 
 var TESTING_NOTIFICATION = false;
 
-var ONE_DAY_MS = 1000 * 60 * 60 * 24;
-var ONE_HOUR_MS = 1000 * 60 * 60;
 var ROSTER_SHEET_NAME = 'Roster';
 var MEMBER_EMAIL_ROW = getNumConfig("MEMBER_EMAIL_ROW", 5);
+var NOTIFICATION_SENDER_NAME = getStrConfig("NOTIFICATION_SENDER_NAME", 'Tennis Roster');
+var NOTIFICATION_MESSAGE_FOOTER = getStrConfig("NOTIFICATION_MESSAGE_FOOTER", '\n\nNOTE: Tennis roster attached in PDF format (ignore other sheets)');
 
 
 /**
@@ -82,11 +82,11 @@ function getIndividualPlayerEmails_(columns) {
 function sendEmail_(recipients, subject, message) {
   var file = DriveApp.getFileById(SPREADSHEET_DOCUMENT_ID);
   var options = {
-    name: 'Tennis Roster',
+    name: NOTIFICATION_SENDER_NAME,
     attachments: [file.getAs(MimeType.PDF)] 
   };
   
-  message += '\n\nNOTE: Tennis roster attached in PDF format (ignore other sheets)';
+  message += NOTIFICATION_MESSAGE_FOOTER;
   message += '\nhttps://docs.google.com/spreadsheets/d/' + SPREADSHEET_DOCUMENT_ID + '/edit?usp=sharing';
   
   var recipientsCSV = '';

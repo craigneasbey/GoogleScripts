@@ -1,5 +1,5 @@
 /**
- * V1.0.4
+ * V1.0.5
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -173,16 +173,14 @@ function test_findCurrentWeekIndex() {
   testArray[4] = new Array("01 Mar 2016");
   testArray[5] = new Array("08 Mar 2016");
   
-  // AEDT(13) or AEST(14)
-  var testDate = new Date(Date.UTC(2016, 1, 22, 13, 0, 0)); // 23 Feb 2016
+  var testDate = createLocalDate(2016, 2, 23, 0, 0, 0);
   
   var expected = 3;
   var actual = findCurrentWeekIndex(testArray, testDate);
   
   GSUnit.assert('Current week on day', actual === expected);
   
-  // AEDT(13) or AEST(14)
-  testDate = new Date(Date.UTC(2016, 1, 18, 13, 0, 0)); // 19 Feb 2016
+  testDate = createLocalDate(2016, 2, 19, 0, 0, 0);
   
   expected = 3;
   actual = findCurrentWeekIndex(testArray, testDate);
@@ -190,12 +188,13 @@ function test_findCurrentWeekIndex() {
   GSUnit.assert('Current week off day', actual === expected);
 }
 
+
 /**
  * manual testing only
  */
-function test_refreshCurrentWeek() { 
+function test_refreshCurrentWeek() {
   refreshCurrentWeek(new Date());
-  //refreshCurrentWeek(new Date(Date.UTC(2016, 1, 17, 13, 0, 0)));
-  //refreshCurrentWeek(new Date(Date.UTC(2016, 0, 3, 13, 0, 0)));
+  //refreshCurrentWeek(createLocalDate(2016, 2, 18, 0, 0, 0));
+  //refreshCurrentWeek(createLocalDate(2016, 1, 4, 0, 0, 0));
 }
 
