@@ -1,5 +1,5 @@
 /**
- * V1.0.6
+ * V1.0.7
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -117,7 +117,7 @@ function findCurrentWeekIndex(weekDates, now) {
       var weekDate = parseDate(weekDates[i][DATE_COLUMN_INDEX]);
     
       // if current date is greater than or equal to row date within the day
-      var result = compareWithinTolerance(now, weekDate, ONE_DAY_MS);
+      var result = compareDatesWithinTolerance(now, weekDate, ONE_DAY_MS);
       if(result <= 0) {
         currentWeekIndex = i;
   

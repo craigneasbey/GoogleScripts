@@ -1,5 +1,5 @@
 /**
- * V1.0.3
+ * V1.0.4
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -52,10 +52,16 @@ function equalDatesWithinTolerance(n1, n2, toleranceMs) {
 }
 
 /**
+ * Compares dates within a millisecond tolerance
+ */
+function compareDatesWithinTolerance(n1, n2, toleranceMs) {
+  return compareWithinTolerance(n1.getTime(), n2.getTime(), toleranceMs);
+}
+
+/**
  * Compares if numbers are equal within a tolerance
  */
 function equalWithinTolerance(n1, n2, tolerance) {
-  
   return compareWithinTolerance(n1, n2, tolerance) === 0;
 }
 
