@@ -1,5 +1,5 @@
 /**
- * V1.0.2
+ * V1.0.3
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -27,6 +27,10 @@ function createUTCDate(year, month, day, hour, minute, second) {
   return d;
 }
 
+function parseDate(str) {
+  return new Date(str);
+}
+
 /**
  * Compare dates, if equal return 0, greater than 1, less than -1
  */
@@ -40,10 +44,6 @@ function compareDates(d1, d2) {
   return -1;
 }
 
-function parseDate(str) {
-  return new Date(str);
-}
-
 /**
  * Compares if dates are equal within a millisecond tolerance
  */
@@ -55,15 +55,29 @@ function equalDatesWithinTolerance(n1, n2, toleranceMs) {
  * Compares if numbers are equal within a tolerance
  */
 function equalWithinTolerance(n1, n2, tolerance) {
+  
+  return compareWithinTolerance(n1, n2, tolerance) === 0;
+}
+
+/**
+ * Compares numbers within a tolerance
+ */
+function compareWithinTolerance(n1, n2, tolerance) {
   if(n1 === n2) {
-    return true;
-  } else if(n1 > n2 && n1 - tolerance <= n2) {
-    return true;
-  } else if(n1 < n2 && n1 + tolerance >= n2) {
-    return true;
+    return 0;
+  } else if(n1 > n2) {
+    if(n1 - tolerance <= n2) {
+      return 0;
+    } else {
+      return 1;
+    }
+  } else if(n1 < n2) {
+    if(n1 + tolerance >= n2) {
+      return 0;
+    }
   }
   
-  return false;
+  return -1;
 }
 
 
@@ -71,11 +85,40 @@ function equalWithinTolerance(n1, n2, tolerance) {
  * Tests
  */
 function test_date_suite() {
-  test_compareDates();
-  test_equalWithinTolerance();
-  test_equalDatesWithinTolerance();
   test_createLocalDate();
   test_createUTCDate();
+  test_parseDate();
+  test_compareDates();
+  test_equalDatesWithinTolerance();
+  test_equalWithinTolerance();
+  test_compareWithinTolerance();
+}
+
+
+function test_createLocalDate() {
+  var expected = 1451307600000; // 29/12/2015 00:00:00 local
+  
+  var actual = createLocalDate(2015, 12, 29, 0, 0, 0);
+  
+  GSUnit.assertEquals('Equal local date', expected, actual.getTime());
+}
+
+function test_createUTCDate() {
+  var expected = new Date(Date.UTC(2015, 11, 29, 0, 0, 0));
+  
+  var actual = createUTCDate(2015, 12, 29, 0, 0, 0);
+  
+  GSUnit.assertEquals('Equal UTC date', expected.getTime(), actual.getTime());
+}
+
+function test_parseDate() {
+  var testDateStr = '29 Dec 2015';
+  
+  var expected = createLocalDate(2015, 12, 29, 0, 0, 0);
+
+  var actual = parseDate(testDateStr);
+  
+  GSUnit.assert('Parse date', actual.getTime() === expected.getTime());
 }
 
 function test_compareDates() {
@@ -102,14 +145,23 @@ function test_compareDates() {
   GSUnit.assert('Less than date', actual === expected);
 }
 
-function test_parseDate() {
-  var testDateStr = '29 Dec 2015';
-  
-  var expected = createLocalDate(2015, 12, 29, 0, 0, 0);
+function test_equalDatesWithinTolerance() {
+  var testData1 = createLocalDate(2015, 12, 28, 0, 0, 0);
+  var testData2 = createLocalDate(2015, 12, 30, 0, 0, 0);
 
-  var actual = parseDate(testDateStr);
+  var actual = equalDatesWithinTolerance(testData1, testData2, ONE_DAY_MS + ONE_DAY_MS);
   
-  GSUnit.assert('Parse date', equalWithinTolerance(actual, expected, 10));
+  GSUnit.assertTrue('Equal within 2 days', actual);
+
+  actual = equalDatesWithinTolerance(testData1, testData2, ONE_MINUTE_MS);
+  
+  GSUnit.assertFalse('Equal within 1 minute', actual);
+  
+  testData2 = createLocalDate(2015, 12, 28, 11, 0, 0);
+  
+  actual = equalDatesWithinTolerance(testData1, testData2, ONE_DAY_MS);
+  
+  GSUnit.assertTrue('Equal within 1 day', actual);
 }
 
 function test_equalWithinTolerance() {
@@ -140,38 +192,32 @@ function test_equalWithinTolerance() {
   GSUnit.assert('Equal 100 = 71, Tol 5', actual === expected);
 }
 
-function test_equalDatesWithinTolerance() {
-  var testData1 = createLocalDate(2015, 12, 28, 0, 0, 0);
-  var testData2 = createLocalDate(2015, 12, 30, 0, 0, 0);
+function test_compareWithinTolerance() {
+  var testData1 = 3;
+  var testData2 = 5;
+  
+  var expected = -1;
+  var actual = compareWithinTolerance(testData1,testData2, 1);
+  
+  GSUnit.assert('Compare 3 = 5, Tol 1', actual === expected);
 
-  var actual = equalDatesWithinTolerance(testData1, testData2, ONE_DAY_MS + ONE_DAY_MS);
+  expected = 0;
+  actual = compareWithinTolerance(testData1,testData2, 2);
   
-  GSUnit.assertTrue('Equal within 2 days', actual);
+  GSUnit.assert('Compare 3 = 5, Tol 2', actual === expected);
+  
+  testData1 = 100;
+  testData2 = 71;
+  
+  expected = 0;
+  actual = compareWithinTolerance(testData1,testData2, 30);
+  
+  GSUnit.assert('Compare 100 = 71, Tol 30', actual === expected);
 
-  actual = equalDatesWithinTolerance(testData1, testData2, ONE_MINUTE_MS);
+  expected = 1;
+  actual = compareWithinTolerance(testData1,testData2, 5);
   
-  GSUnit.assertFalse('Equal within 1 minute', actual);
-  
-  testData2 = createLocalDate(2015, 12, 28, 11, 0, 0);
-  
-  actual = equalDatesWithinTolerance(testData1, testData2, ONE_DAY_MS);
-  
-  GSUnit.assertTrue('Equal within 1 day', actual);
+  GSUnit.assert('Compare 100 = 71, Tol 5', actual === expected);
 }
 
-function test_createLocalDate() {
-  var expected = 1451307600000; // 29/12/2015 00:00:00 local
-  
-  var actual = createLocalDate(2015, 12, 29, 0, 0, 0);
-  
-  GSUnit.assertEquals('Equal local date', expected, actual.getTime());
-}
-
-function test_createUTCDate() {
-  var expected = new Date(Date.UTC(2015, 11, 29, 0, 0, 0));
-  
-  var actual = createUTCDate(2015, 12, 29, 0, 0, 0);
-  
-  GSUnit.assertEquals('Equal UTC date', expected.getTime(), actual.getTime());
-}
 
