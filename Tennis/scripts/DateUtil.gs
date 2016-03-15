@@ -1,5 +1,5 @@
 /**
- * V1.0.4
+ * V1.0.5
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -95,6 +95,7 @@ function test_date_suite() {
   test_createUTCDate();
   test_parseDate();
   test_compareDates();
+  test_compareDatesWithinTolerance();
   test_equalDatesWithinTolerance();
   test_equalWithinTolerance();
   test_compareWithinTolerance();
@@ -151,23 +152,47 @@ function test_compareDates() {
   GSUnit.assert('Less than date', actual === expected);
 }
 
+function test_compareDatesWithinTolerance() {
+  var testData1 = createLocalDate(2015, 12, 28, 0, 0, 0);
+  var testData2 = createLocalDate(2015, 12, 30, 0, 0, 0);
+  
+  var expected = 0;
+
+  var actual = compareDatesWithinTolerance(testData1, testData2, ONE_DAY_MS + ONE_DAY_MS);
+  
+  GSUnit.assertEquals('Compare dates within 2 days', expected, actual);
+  
+  expected = -1;
+
+  actual = compareDatesWithinTolerance(testData1, testData2, ONE_MINUTE_MS);
+  
+  GSUnit.assertEquals('Compare dates not within 1 minute', expected, actual);
+  
+  expected = 0;
+  testData2 = createLocalDate(2015, 12, 28, 11, 0, 0);
+  
+  actual = compareDatesWithinTolerance(testData1, testData2, ONE_DAY_MS);
+  
+  GSUnit.assertEquals('Compare dates within 1 day', expected, actual);
+}
+
 function test_equalDatesWithinTolerance() {
   var testData1 = createLocalDate(2015, 12, 28, 0, 0, 0);
   var testData2 = createLocalDate(2015, 12, 30, 0, 0, 0);
 
   var actual = equalDatesWithinTolerance(testData1, testData2, ONE_DAY_MS + ONE_DAY_MS);
   
-  GSUnit.assertTrue('Equal within 2 days', actual);
+  GSUnit.assertTrue('Dates equal within 2 days', actual);
 
   actual = equalDatesWithinTolerance(testData1, testData2, ONE_MINUTE_MS);
   
-  GSUnit.assertFalse('Equal within 1 minute', actual);
+  GSUnit.assertFalse('Dates not equal within 1 minute', actual);
   
   testData2 = createLocalDate(2015, 12, 28, 11, 0, 0);
   
   actual = equalDatesWithinTolerance(testData1, testData2, ONE_DAY_MS);
   
-  GSUnit.assertTrue('Equal within 1 day', actual);
+  GSUnit.assertTrue('Dates equal within 1 day', actual);
 }
 
 function test_equalWithinTolerance() {
