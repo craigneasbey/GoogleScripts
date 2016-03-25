@@ -1,5 +1,5 @@
 /**
- * V1.0.2
+ * V1.0.3
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -7,6 +7,8 @@
  *
  * Created by craigneasbey (https://github.com/craigneasbey/GoogleScripts/tree/master/Tennis)
  */
+
+loadGlobalConfig();
 
 /**
  * Allocate players rosters for the current week
@@ -25,9 +27,9 @@ function allocatePlayersForWeek(currentArray, playersHistoryArray, maxWeeksPlay,
     // for each player
     for(var i=0; i < currentArray.length && i < playersHistoryArray.length; i++) {
       var result = allocatePlayerForWeek_(currentArray[i], playersHistoryArray[i], maxWeeksPlay, maxWeeksRest);
-      if(result === ROSTERED) {
-        if(playCount >= MAX_TEAM_MEMBERS) {
-          result = COULD_BE_AVAILABLE;
+      if(result === global.ROSTERED) {
+        if(playCount >= global.MAX_TEAM_MEMBERS) {
+          result = global.COULD_BE_AVAILABLE;
         } else {
           playCount++;
         }
@@ -38,9 +40,9 @@ function allocatePlayersForWeek(currentArray, playersHistoryArray, maxWeeksPlay,
     // for each player
     for(var i=0; i < currentArray.length; i++) {
       var result = allocatePlayerForWeek_(currentArray[i], new Array(""));
-      if(result === ROSTERED) {
-        if(playCount >= MAX_TEAM_MEMBERS) {
-          result = COULD_BE_AVAILABLE;
+      if(result === global.ROSTERED) {
+        if(playCount >= global.MAX_TEAM_MEMBERS) {
+          result = global.COULD_BE_AVAILABLE;
         } else {
           playCount++;
         }
@@ -55,7 +57,7 @@ function allocatePlayersForWeek(currentArray, playersHistoryArray, maxWeeksPlay,
    
   // if there are not enough players allocated, change COULD_BE_AVAILABLE to ROSTERED
   // start on player playerIncrement
-  if(playCount !== MAX_TEAM_MEMBERS) {
+  if(playCount !== global.MAX_TEAM_MEMBERS) {
     if(resultArray && Array.isArray(resultArray)) {
       var needPlayers = true;
       var needPlayerLoops = 0;
@@ -77,15 +79,15 @@ function allocatePlayersForWeek(currentArray, playersHistoryArray, maxWeeksPlay,
       }
       
       while(needPlayers) {
-        for(var i=start; i < resultArray.length && playCount < MAX_TEAM_MEMBERS; i++) {
+        for(var i=start; i < resultArray.length && playCount < global.MAX_TEAM_MEMBERS; i++) {
           Logger.log('i: ' + i + ' playCount: ' + playCount);
-          if(resultArray[i] === COULD_BE_AVAILABLE) {
-            resultArray[i] = ROSTERED;
+          if(resultArray[i] === global.COULD_BE_AVAILABLE) {
+            resultArray[i] = global.ROSTERED;
             playCount++;
           }
         }
 
-        if(playCount === MAX_TEAM_MEMBERS) {
+        if(playCount === global.MAX_TEAM_MEMBERS) {
           needPlayers = false;
         } else {
           // has all players been checked?
@@ -106,7 +108,7 @@ function allocatePlayersForWeek(currentArray, playersHistoryArray, maxWeeksPlay,
   
   // if array is empty, fill array with ROSTERED until MAX_TEAM_MEMBERS
   if(resultArray.length == 0) {
-    resultArray.push(ROSTERED);
+    resultArray.push(global.ROSTERED);
   }
   
   return resultArray;
@@ -119,7 +121,7 @@ function allocatePlayersForWeek(currentArray, playersHistoryArray, maxWeeksPlay,
  * maxWeeksRest - Maximum consecutive weeks resting
  */
 function allocatePlayerForWeek_(currentWeek, historyArray, maxWeeksPlay, maxWeeksRest) {  
-    if(currentWeek === NOT_AVAILABLE) {
+    if(currentWeek === global.NOT_AVAILABLE) {
       return currentWeek;
     }
     
@@ -132,14 +134,14 @@ function allocatePlayerForWeek_(currentWeek, historyArray, maxWeeksPlay, maxWeek
     //Logger.log('maxWeeksPlay: ' + maxWeeksPlay);
     
     for(var i=0; i < historyArray.length && ( i < maxWeeksPlay || i < maxWeeksRest); i++) {
-      if(historyArray[i] === ROSTERED) {
+      if(historyArray[i] === global.ROSTERED) {
         playCount++;
         
         if(restCount > 0) {
           if(restCount >= maxWeeksRest) {
-            return ROSTERED;
+            return global.ROSTERED;
           } else {
-            return COULD_BE_AVAILABLE;
+            return global.COULD_BE_AVAILABLE;
           }
         }
       } else {
@@ -147,33 +149,24 @@ function allocatePlayerForWeek_(currentWeek, historyArray, maxWeeksPlay, maxWeek
         
         if(playCount > 0) {
           if(playCount >= maxWeeksPlay) {
-            return COULD_BE_AVAILABLE;
+            return global.COULD_BE_AVAILABLE;
           } else {
-            return ROSTERED;
+            return global.ROSTERED;
           }
         }
       }
     }
     
     if(playCount == maxWeeksPlay) {
-      return COULD_BE_AVAILABLE;
+      return global.COULD_BE_AVAILABLE;
     }
     
     if(restCount == maxWeeksRest) {
-      return ROSTERED;
+      return global.ROSTERED;
     }
   }
   
-  return ROSTERED;
-}
-
-/**
- * Check the value, if undefined or empty, return the default
- *
- * http://stackoverflow.com/questions/894860/set-a-default-parameter-value-for-a-javascript-function
- */
-function defaultFor_(value, defaultValue) { 
-  return typeof value !== 'undefined' && value !== '' ? value : defaultValue; 
+  return global.ROSTERED;
 }
 
 
@@ -190,7 +183,6 @@ function test_allocate_suite() {
   test_one_week_roster();
   test_one_week_roster_with_four_week_history();
   test_not_enough_players_available();
-  test_defaultFor();
 }
 
 function test_one_cell_roster() {
@@ -440,28 +432,3 @@ function test_not_enough_players_available() {
   Logger.log(GSUnit.assertArrayEquals('Not enough players for one week', expectedArray, actualArray));
 }
 
-function test_defaultFor() { 
-  var value;
-  var defaultValue = 'test undefined';
-  var expected = 'test undefined';
-   
-  var actual = defaultFor_(value, defaultValue);
-  
-  Logger.log(GSUnit.assertEquals('Undefined', expected, actual));
-  
-  value = '';
-  defaultValue = 'test defined';
-  expected = 'test defined';
-   
-  actual = defaultFor_(value, defaultValue);
-  
-  Logger.log(GSUnit.assertEquals('Defined', expected, actual));
-  
-  value = 'This is a test';
-  defaultValue = 'test text';
-  expected = 'This is a test';
-   
-  actual = defaultFor_(value, defaultValue);
-  
-  Logger.log(GSUnit.assertEquals('This is a test', expected, actual));
-}

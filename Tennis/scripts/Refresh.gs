@@ -1,5 +1,5 @@
 /**
- * V1.0.7
+ * V1.0.8
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -8,27 +8,22 @@
  * Created by craigneasbey (https://github.com/craigneasbey/GoogleScripts/tree/master/Tennis)
  */
 
-var TESTING_REFRESH = false;
+loadGlobalConfig();
 
-var PLAYER_NAME_ROW = getNumConfig("MEMBER_NAME_ROW", 4);
-var FIRST_ROSTER_ROW = getNumConfig("FIRST_ROSTER_ROW", 6); // the first week roster row
-var DATE_COLUMN = 1; // the first column is the week date
-var MAX_ROSTER_ROWS = getNumConfig("MAX_ROSTER_ROWS", 1000); // arbitrary number
-var MAX_MEMBER_COLUMNS = getNumConfig("MAX_MEMBER_COLUMNS", 100); // arbitrary number
-var REFRESH_CHECK_HOUR = getNumConfig("REFRESH_CHECK_HOUR", 2);
-var REFRESH_CHECK_DAYS = getNumConfig("REFRESH_CHECK_DAYS", 1);
-
-var ROSTER_SHEET_NAME = 'Roster';
-if(TESTING_REFRESH) {
-  ROSTER_SHEET_NAME = 'IGNORE - TESTING ONLY';
+// create local configuration object
+var refreshConfig = {};
+refreshConfig.TESTING = false;
+refreshConfig.ROSTER_SHEET_NAME = 'Roster';
+if(refreshConfig.TESTING) {
+  refreshConfig.ROSTER_SHEET_NAME = 'IGNORE - TESTING ONLY';
 }
 
 function createTimeDrivenTriggerForRefresh() {
   // Trigger REFRESH_CHECK_DAYS at REFRESH_CHECK_HOUR
   ScriptApp.newTrigger('triggerRefresh')
       .timeBased()
-      .atHour(REFRESH_CHECK_HOUR)
-      .everyDays(REFRESH_CHECK_DAYS)
+      .atHour(global.REFRESH_CHECK_HOUR)
+      .everyDays(global.REFRESH_CHECK_DAYS)
       .create();
 }
 
@@ -43,11 +38,9 @@ function triggerRefresh() {
  * Get the number of players
  */
 function getNumOfPlayers(rosterSheet) {  
-  var NAME_START_COLUMN = 2;
-  var NUM_OF_ROWS = 1;
-  var NUM_OF_COLS = MAX_MEMBER_COLUMNS;
+  var numOfRows = 1;
   
-  var nameRange = rosterSheet.getRange(PLAYER_NAME_ROW,NAME_START_COLUMN,NUM_OF_ROWS,NUM_OF_COLS);
+  var nameRange = rosterSheet.getRange(global.MEMBER_NAME_ROW,global.NAME_START_COLUMN,numOfRows,global.MAX_MEMBER_COLUMNS);
   var names = nameRange.getValues();
   
   return getNumContentColumns(names);
@@ -58,13 +51,13 @@ function getNumOfPlayers(rosterSheet) {
  */
 function refreshCurrentWeek(now) { 
   var currentSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  var rosterSheet = currentSpreadsheet.getSheetByName(ROSTER_SHEET_NAME);
+  var rosterSheet = currentSpreadsheet.getSheetByName(refreshConfig.ROSTER_SHEET_NAME);
   
   var numOfPlayers = getNumOfPlayers(rosterSheet);
   var numOfColumns = numOfPlayers + 1; // add date column
   
   // get all roster weeks
-  var rosterRange = rosterSheet.getRange(FIRST_ROSTER_ROW,DATE_COLUMN,MAX_ROSTER_ROWS,numOfColumns);
+  var rosterRange = rosterSheet.getRange(global.FIRST_ROSTER_ROW,global.DATE_COLUMN,global.MAX_ROSTER_ROWS,numOfColumns);
   
   // clear highlighting on week rows
   rosterRange.clearFormat();
@@ -73,9 +66,9 @@ function refreshCurrentWeek(now) {
   var weekRowIndex = findCurrentWeekIndex(weekDates, now);
   
   // highlight that row
-  var weekRow = FIRST_ROSTER_ROW + weekRowIndex;
-  var NUM_OF_ROWS = 1;
-  var currentWeekRange = rosterSheet.getRange(weekRow,DATE_COLUMN,NUM_OF_ROWS,numOfColumns);
+  var weekRow = global.FIRST_ROSTER_ROW + weekRowIndex;
+  var numOfRows = 1;
+  var currentWeekRange = rosterSheet.getRange(weekRow,global.DATE_COLUMN,numOfRows,numOfColumns);
   currentWeekRange.setBackground('lightgray');
 }
 
@@ -99,6 +92,23 @@ function getNumContentColumns(rowArray) {
   }
   
   return numContent;
+}
+
+/**
+ * Find the current or next week index in a sheet
+ * if it is after the date, move to the next week
+ */
+function findCurrentWeekIndexOnSheet(currentSheet) {
+  var numOfColumns = 1;
+  var now = new Date();
+  
+  // get all roster weeks
+  var currentRange = currentSheet.getRange(global.FIRST_ROSTER_ROW,global.DATE_COLUMN,global.MAX_ROSTER_ROWS,numOfColumns);
+  
+  // find current week index
+  var weekDates = currentRange.getValues();
+  
+  return findCurrentWeekIndex(weekDates, now);
 }
 
 /**
@@ -201,7 +211,7 @@ function test_findCurrentWeekIndex() {
  */
 function test_refreshCurrentWeek() {
   refreshCurrentWeek(new Date());
-  //refreshCurrentWeek(createLocalDate(2016, 2, 18, 0, 0, 0));
+  //refreshCurrentWeek(createLocalDate(2016, 8, 23, 0, 0, 0));
   //refreshCurrentWeek(createLocalDate(2016, 1, 4, 0, 0, 0));
 }
 

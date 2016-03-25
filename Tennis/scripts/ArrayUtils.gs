@@ -1,5 +1,5 @@
 /**
- * V1.0.0
+ * V1.0.1
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -7,6 +7,8 @@
  *
  * Created by craigneasbey (https://github.com/craigneasbey/GoogleScripts/tree/master/Tennis)
  */
+
+loadGlobalConfig();
 
 /**
  * Convert one dimensional array to two dimensional array for the sheet range
@@ -293,6 +295,15 @@ function isEmptyStr(str) {
   return true;
 }
 
+/**
+ * Check the value, if undefined or empty, return the default
+ *
+ * http://stackoverflow.com/questions/894860/set-a-default-parameter-value-for-a-javascript-function
+ */
+function defaultFor_(value, defaultValue) { 
+  return typeof value !== 'undefined' && value !== '' ? value : defaultValue; 
+}
+
 
 
 /**
@@ -311,6 +322,7 @@ function test_array_suite() {
   test_compress_array();
   test_isEmptyStr();
   test_isEmpty();
+  test_defaultFor();
 }
 
 function test_rotate_3_by_2_array_clockwise() {
@@ -605,3 +617,30 @@ function test_isEmpty() {
   Logger.log(GSUnit.assertEquals('Empty string ', false, isEmpty("")));
   Logger.log(GSUnit.assertEquals('Not Empty string ', false, isEmpty("test")));
 }
+
+function test_defaultFor() { 
+  var value;
+  var defaultValue = 'test undefined';
+  var expected = 'test undefined';
+   
+  var actual = defaultFor_(value, defaultValue);
+  
+  Logger.log(GSUnit.assertEquals('Undefined', expected, actual));
+  
+  value = '';
+  defaultValue = 'test defined';
+  expected = 'test defined';
+   
+  actual = defaultFor_(value, defaultValue);
+  
+  Logger.log(GSUnit.assertEquals('Defined', expected, actual));
+  
+  value = 'This is a test';
+  defaultValue = 'test text';
+  expected = 'This is a test';
+   
+  actual = defaultFor_(value, defaultValue);
+  
+  Logger.log(GSUnit.assertEquals('This is a test', expected, actual));
+}
+

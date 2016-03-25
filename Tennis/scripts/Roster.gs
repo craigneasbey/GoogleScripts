@@ -1,5 +1,5 @@
 /**
- * V1.0.7
+ * V1.0.8
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -8,18 +8,16 @@
  * Created by craigneasbey (https://github.com/craigneasbey/GoogleScripts/tree/master/Tennis)
  */
 
-var TESTING_ROSTER = false;
+loadGlobalConfig();
 
-var EMPTY = '';
-var ROSTERED = getStrConfig("ROSTERED", 'Play');
-var COULD_BE_AVAILABLE = getStrConfig("COULD_BE_AVAILABLE", 'CBA');
-var NOT_AVAILABLE = getStrConfig("NOT_AVAILABLE", 'NA');
-var DEFAULT_YEAR = getStrConfig("DEFAULT_YEAR", "2016");
-var MAX_TEAM_MEMBERS = getNumConfig("MAX_TEAM_MEMBERS", 4);
-var DEFAULT_MAX_WEEKS_ROSTERED = getNumConfig("DEFAULT_MAX_WEEKS_ROSTERED", 2); // maximum consecutive weeks rostered
-var DEFAULT_MAX_WEEKS_REST = getNumConfig("DEFAULT_MAX_WEEKS_REST", 1); // maximum consecutive weeks resting
-var MENU_ITEM_ALLOCATE = getStrConfig("MENU_ITEM_ALLOCATE", 'Allocate players...');
-var MENU_ITEM_EMAIL = getStrConfig("MENU_ITEM_EMAIL", 'Email players...');
+// create local configuration object
+var rosterConfig = {};
+rosterConfig.TESTING = false;
+rosterConfig.DATE_COLUMN = 1; // the first column is the week date
+rosterConfig.ROSTER_SHEET_NAME = global.ROSTER_SHEET_NAME;
+if(rosterConfig.TESTING) {
+  rosterConfig.ROSTER_SHEET_NAME = 'IGNORE - TESTING ONLY';
+}
 
 /**
  * Runs when the spreadsheet is open, adds a menu to the spreadsheet
@@ -28,8 +26,9 @@ function onOpen() {
   var spreadsheet = SpreadsheetApp.getActive();
   var menuItems = [
     {name: 'Generate dates...', functionName: 'generateDates_'},
-    {name: MENU_ITEM_ALLOCATE, functionName: 'allocatePlayers_'},
-    {name: MENU_ITEM_EMAIL, functionName: 'emailPlayersMessage_'}
+    {name: global.MENU_ITEM_ALLOCATE, functionName: 'allocatePlayers_'},
+    {name: global.MENU_ITEM_EMAIL, functionName: 'emailPlayersMessage_'},
+    {name: global.MENU_ITEM_REMOVE, functionName: 'removePastWeeks_'}
   ];
   spreadsheet.addMenu('Roster', menuItems);
 }
@@ -47,12 +46,12 @@ function onEdit(e) {
  * Generate Dates for players schedule
  */
 function generateDates_() {
-  var defaultYear = DEFAULT_YEAR;
+  var defaultYear = global.DEFAULT_YEAR;
 
-  var year = openEntryDialog_('Generate Dates', 'Enter year (default ' + defaultYear + '):');
+  var year = openEntryDialog('Generate Dates', 'Enter year (default ' + defaultYear + '):');
   Logger.log('year: ' + year);
   
-  if(year !== 'CANCEL') {
+  if(year !== CANCEL) {
     year = defaultFor_(year, defaultYear);
     
     var html = HtmlService.createHtmlOutputFromFile('dates.html')
@@ -69,94 +68,58 @@ function allocatePlayers_() {
   var currentSheet = SpreadsheetApp.getActiveSheet();
   var currentRange = currentSheet.getActiveRange();
   
+  var promptTitle = '';
+  var promptText = '';
+  var result = false;
+  
   // verify range
-  if(!TESTING_ROSTER) {
-    var result = openCheckDialog_(currentRange);
+  if(!rosterConfig.TESTING) {
+    promptTitle = 'Roster Range Selected', 
+    promptText = 'The current selected range is: ' + currentRange.getA1Notation();
+    promptText += '.\n\n Are you sure you want to continue allocating rostered members in that range?', 
+    
+    result = openCheckDialog(promptTitle, promptText);
   } else {
-    var result = true;
+    result = true;
   }
   
   if(result) {
     Logger.log("current range: " + JSON.stringify(currentRange));
+
+    var maxWeeksPlay = global.DEFAULT_MAX_WEEKS_ROSTERED;
+    var maxWeeksRest = global.DEFAULT_MAX_WEEKS_REST;
     
-    // get configuration
-    if(!TESTING_ROSTER) {
-      var promptText = 'Enter maximum consecutive weeks rostered (default ' + DEFAULT_MAX_WEEKS_ROSTERED + '):';
-      var maxWeeksPlay = openEntryDialog_('Allocation Configuration', promptText);
+    // get configuration from user
+    if(!rosterConfig.TESTING) {
+      promptTitle = 'Allocation Configuration';
+      promptText = 'Enter maximum consecutive weeks rostered (default ' + global.DEFAULT_MAX_WEEKS_ROSTERED + '):';
+      maxWeeksPlay = openEntryDialog(promptTitle, promptText);
       
-      if(maxWeeksPlay === 'CANCEL') {
+      if(maxWeeksPlay === CANCEL) {
         return;
       }
       
-      promptText = 'Enter maximum consecutive weeks resting (default ' + DEFAULT_MAX_WEEKS_REST + '):';
-      var maxWeeksRest = openEntryDialog_('Allocation Configuration', promptText);
+      promptText = 'Enter maximum consecutive weeks resting (default ' + global.DEFAULT_MAX_WEEKS_REST + '):';
+      maxWeeksRest = openEntryDialog(promptTitle, promptText);
       
-      if(maxWeeksRest === 'CANCEL') {
+      if(maxWeeksRest === CANCEL) {
         return;
       }
-    } else {
-      var maxWeeksPlay = DEFAULT_MAX_WEEKS_ROSTERED;
-      var maxWeeksRest = DEFAULT_MAX_WEEKS_REST;
     }
     
-    maxWeeksPlay = defaultFor_(maxWeeksPlay, DEFAULT_MAX_WEEKS_ROSTERED);
-    maxWeeksRest = defaultFor_(maxWeeksRest, DEFAULT_MAX_WEEKS_REST);
+    maxWeeksPlay = defaultFor_(maxWeeksPlay, global.DEFAULT_MAX_WEEKS_ROSTERED);
+    maxWeeksRest = defaultFor_(maxWeeksRest, global.DEFAULT_MAX_WEEKS_REST);
     
     // get the selected history
     var historyArray = getPlayersHistory_(maxWeeksPlay, maxWeeksRest, currentRange, currentSheet);
     
     // allocate roster for selected players
-    allocateSelectedPlayers_(maxWeeksPlay, maxWeeksRest, historyArray, currentRange, currentSheet);
+    var save = allocateSelectedPlayers_(maxWeeksPlay, maxWeeksRest, historyArray, currentRange, currentSheet);
     
-    // save
-    SpreadsheetApp.flush();
+    if(save) {
+      SpreadsheetApp.flush();
+    }
   }
-}
-
-/**
- * Display dialog for user to confirm the current selected range is correct
- */
-function openCheckDialog_(currentRange) {
-  
-  var ui = SpreadsheetApp.getUi(),
-      response = ui.alert(
-        'Roster Range Selected', 
-        'The current selected range is: ' + currentRange.getA1Notation() + '.\n\n Are you sure you want to continue allocating rostered members in that range?', 
-        ui.ButtonSet.YES_NO);
-
- // Process the user's response.
- if (response == ui.Button.YES) {
-   Logger.log('The user clicked "Yes."');
-   return true;
- } else {
-   Logger.log('The user clicked "No" or the close button in the dialog\'s title bar.');
- }
-  
-  return false;
-}
-
-/**
- * Display dialog for user to enter text
- */
-function openEntryDialog_(promptTitle, promptText) {
-  
-  var ui = SpreadsheetApp.getUi(),
-      response = ui.prompt(
-        promptTitle, 
-        promptText, 
-        ui.ButtonSet.OK_CANCEL);
-
- // Process the user's response.
- var text = response.getResponseText();
- var button = response.getSelectedButton();
- if (button == ui.Button.OK) {
-   Logger.log('The user clicked "OK" and entered text: ' + text);
-   return text;
- } else {
-   Logger.log('The user clicked "Cancel" or the close button in the dialog\'s title bar.');
- }
-  
-  return 'CANCEL';
 }
 
 /*
@@ -180,22 +143,27 @@ function getPlayersHistory_(maxWeeksPlay, maxWeeksRest, currentRange, currentShe
  */
 function allocateSelectedPlayers_(maxWeeksPlay, maxWeeksRest, historyArray, currentRange, currentSheet)
 {
-    var currentColumnIndex = currentRange.getColumn();
-    var currentWidth = currentRange.getNumColumns();
-    var fillTeam = { "start" : 0 };
+  var result = false;
+  var currentColumnIndex = currentRange.getColumn();
+  var currentWidth = currentRange.getNumColumns();
+  var fillTeam = { "start" : 0 };
+  
+  // for each row(week) of the current range
+  for(var i=currentRange.getRow(); i < currentRange.getRow() + currentRange.getNumRows(); i++) {
+    var numOfRows = 1;
+    var currentRow = currentSheet.getRange(i, currentColumnIndex, numOfRows, currentWidth);
+    var currentRowArrayArray = currentRow.getValues();
     
-    // for each row(week) of the current range
-    for(var i=currentRange.getRow(); i < currentRange.getRow() + currentRange.getNumRows(); i++) {
-      var numOfRows = 1;
-      var currentRow = currentSheet.getRange(i, currentColumnIndex, numOfRows, currentWidth);
-      var currentRowArrayArray = currentRow.getValues();
-      
-      var weekArray = allocatePlayersForWeek(currentRowArrayArray[0], historyArray, maxWeeksPlay, maxWeeksRest, fillTeam);
-      
-      currentRow.setValues([weekArray]);
-      
-      historyArray = progressPlayersHistory_(historyArray, weekArray);
-    }
+    var weekArray = allocatePlayersForWeek(currentRowArrayArray[0], historyArray, maxWeeksPlay, maxWeeksRest, fillTeam);
+    
+    currentRow.setValues([weekArray]);
+    
+    historyArray = progressPlayersHistory_(historyArray, weekArray);
+    
+    result = true;
+  }
+  
+  return result;
 }
 
 /**
@@ -218,20 +186,67 @@ function progressPlayersHistory_(historyArray, newRow) {
 function emailPlayersMessage_() {
  
   // get subject
-  var subject = openEntryDialog_('Email Players', 'Subject:');
+  var subject = openEntryDialog(global.EMAIL_MEMBERS_DIALOG_TITLE, 'Subject:');
   
-  if(subject === 'CANCEL') {
+  if(subject === CANCEL) {
     return;
   }
   
   // get message
-  var message = openEntryDialog_('Email Players', 'Message:');
+  var message = openEntryDialog(global.EMAIL_MEMBERS_DIALOG_TITLE, 'Message:');
   
-  if(message === 'CANCEL') {
+  if(message === CANCEL) {
     return;
   }
   
   emailPlayers_(subject, message);
+}
+
+/**
+ * Remove all weeks older than maximum weeks history required
+ */
+function removePastWeeks_() {
+  var historyLength = global.DEFAULT_MAX_WEEKS_ROSTERED > global.DEFAULT_MAX_WEEKS_REST ? global.DEFAULT_MAX_WEEKS_ROSTERED : global.DEFAULT_MAX_WEEKS_REST;
+
+  // get configuration from user
+  if(!rosterConfig.TESTING) {
+    var promptText = 'Enter maximum past weeks to keep (default ' + historyLength + '):';
+    var maxWeeksHistory = openEntryDialog('Remove Past Weeks Configuration', promptText);
+    
+    if(maxWeeksHistory === CANCEL) {
+      return;
+    }
+    
+    historyLength = defaultFor_(maxWeeksHistory, historyLength);
+  }
+
+  // remove history week rows
+  var save = removeHistory_(historyLength);
+    
+  if(save) {
+    SpreadsheetApp.flush();
+  }
+}
+
+/**
+ * Remove history week rows older than the history length
+ */
+function removeHistory_(retainHistoryLength) {
+  var currentSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  var rosterSheet = currentSpreadsheet.getSheetByName(rosterConfig.ROSTER_SHEET_NAME);
+  //Logger.log('rosterConfig.ROSTER_SHEET_NAME: ' + rosterConfig.ROSTER_SHEET_NAME);
+  
+  // remove all rows between first week index and current week - retainHistoryLength
+  var weekRowIndex = findCurrentWeekIndexOnSheet(rosterSheet);
+  var deleteNumOfRows = weekRowIndex - retainHistoryLength;
+  
+  Logger.log('FIRST_ROSTER_ROW: ' + global.FIRST_ROSTER_ROW + ' deleteNumOfRows: ' + deleteNumOfRows);
+  if(deleteNumOfRows > 0) {
+    rosterSheet.deleteRows(global.FIRST_ROSTER_ROW, deleteNumOfRows);
+    return true;
+  }
+    
+  return false;
 }
 
 
@@ -286,5 +301,9 @@ function test_generateDates() {
 
 function test_allocatePlayers() {
   allocatePlayers_();
+}
+
+function test_removePastWeeks() {
+  removePastWeeks_();
 }
 

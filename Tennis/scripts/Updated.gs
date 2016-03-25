@@ -1,5 +1,5 @@
 /**
- * V1.0.1
+ * V1.0.2
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -8,20 +8,17 @@
  * Created by craigneasbey (https://github.com/craigneasbey/GoogleScripts/tree/master/Tennis)
  */
 
-var TESTING_UPDATED = false;
+loadGlobalConfig();
 
-var UPDATED_SHEET_NAME = 'Updated';
-var UPDATED_UPDATED_ROW = 1;
-var UPDATED_REMINDER_ROW = 2;
-var UPDATED_CHECK_HOUR = getNumConfig("UPDATED_CHECK_HOUR", 6);
-var UPDATED_SUBJECT = getStrConfig("UPDATED_SUBJECT", 'Tennis Roster Updated');
-var UPDATED_MESSAGE = getStrConfig("UPDATED_MESSAGE", 'Please check the tennis roster as it has been recently updated.');
+// create local configuration object
+var updatedConfig = {};
+updatedConfig.TESTING = true;
 
 function createTimeDrivenTriggerForUpdated() {
   // Trigger every UPDATED_CHECK_HOUR hours
   ScriptApp.newTrigger('triggerUpdated')
       .timeBased()
-      .everyHours(UPDATED_CHECK_HOUR)
+      .everyHours(global.UPDATED_CHECK_HOUR)
       .create();
 }
 
@@ -33,8 +30,8 @@ function triggerUpdated() {
   var result = checkUpdatedNotificationRequired_(now);
   
   if(result) {
-    var subject = UPDATED_SUBJECT;
-    var message = UPDATED_MESSAGE;
+    var subject = global.UPDATED_SUBJECT;
+    var message = global.UPDATED_MESSAGE;
     
     emailPlayers_(subject, message);
     
@@ -69,13 +66,13 @@ function checkUpdatedNotificationRequired_(now) {
  */
 function setUpdated_(newValue) { 
   var currentSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  var updatedSheet = currentSpreadsheet.getSheetByName(UPDATED_SHEET_NAME);
+  var updatedSheet = currentSpreadsheet.getSheetByName(global.UPDATED_SHEET_NAME);
   
   checkUpdatedSheetExists();
   
   if(updatedSheet) {
     // set first cell
-    updatedSheet.getRange(UPDATED_UPDATED_ROW,1,1,1).setValue(newValue);
+    updatedSheet.getRange(global.UPDATED_UPDATED_ROW,1,1,1).setValue(newValue);
   }
 }
 
@@ -84,11 +81,11 @@ function setUpdated_(newValue) {
  */
 function checkUpdatedSheetExists() {
   var currentSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  var updatedSheet = currentSpreadsheet.getSheetByName(UPDATED_SHEET_NAME);
+  var updatedSheet = currentSpreadsheet.getSheetByName(global.UPDATED_SHEET_NAME);
 
     // Insert sheet if it does not exist
     if (updatedSheet === null) {
-      updatedSheet = currentSpreadsheet.insertSheet(UPDATED_SHEET_NAME);
+      updatedSheet = currentSpreadsheet.insertSheet(global.UPDATED_SHEET_NAME);
     }
 }
 
@@ -97,13 +94,13 @@ function checkUpdatedSheetExists() {
  */
 function getUpdated_() { 
   var currentSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  var updatedSheet = currentSpreadsheet.getSheetByName(UPDATED_SHEET_NAME);
+  var updatedSheet = currentSpreadsheet.getSheetByName(global.UPDATED_SHEET_NAME);
   
   var currentValue;
   
   if(updatedSheet) {
     // get first cell
-    currentValue = updatedSheet.getRange(UPDATED_UPDATED_ROW,1,1,1).getValue();
+    currentValue = updatedSheet.getRange(global.UPDATED_UPDATED_ROW,1,1,1).getValue();
   }
   
   return currentValue;
@@ -127,7 +124,7 @@ function isUpdated_() {
  * has not already been set
  */
 function checkUpdated(element) {
-  if(element && element.range && element.range.getSheet().getName() === ROSTER_SHEET_NAME) {  
+  if(element && element.range && element.range.getSheet().getName() === global.ROSTER_SHEET_NAME) {  
     if(!isUpdated_()) {
       // get date stamp
       var now = new Date();
@@ -149,12 +146,12 @@ function test_manual_updated_suite() {
   test_checkUpdatedNotificationRequired();
   test_checkUpdated();
   
-  TESTING_NOTIFICATION = true;
+  notificationConfig.TESTING = true;
   
   test_triggerUpdated_NoEmail();
   test_triggerUpdated_Email();
   
-  TESTING_NOTIFICATION = false;
+  notificationConfig.TESTING = false;
 }
 
 function test_setUpdated() {

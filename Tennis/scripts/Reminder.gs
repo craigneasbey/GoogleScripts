@@ -1,5 +1,5 @@
 /**
- * V1.0.4
+ * V1.0.5
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -8,19 +8,17 @@
  * Created by craigneasbey (https://github.com/craigneasbey/GoogleScripts/tree/master/Tennis)
  */
 
-var TESTING_REMINDER = false;
+loadGlobalConfig();
 
-var REMINDERS = getBoolConfig("REMINDERS", true);
-var REMINDER_SEND_BEFORE_DAYS = getNumConfig("REMINDER_SEND_BEFORE_DAYS", 1);
-var REMINDER_CHECK_HOUR = getNumConfig("REMINDER_CHECK_HOUR", 6);
-var REMINDER_SUBJECT = getStrConfig("REMINDER_SUBJECT", 'Tennis Roster Reminder');
-var REMINDER_MESSAGE = getStrConfig("REMINDER_MESSAGE", 'This is a reminder that you are rostered on to play tennis this week.');
+// create local configuration object
+var reminderConfig = {};
+reminderConfig.TESTING = false;
 
 function createTimeDrivenTriggerForReminder() {
   // Trigger every REMINDER_CHECK_HOUR hours
   ScriptApp.newTrigger('triggerReminder')
       .timeBased()
-      .everyHours(REMINDER_CHECK_HOUR)
+      .everyHours(global.REMINDER_CHECK_HOUR)
       .create();
 }
 
@@ -32,25 +30,25 @@ function triggerReminder() {
   var result = false;
   
   // configuration enables all reminders
-  if(REMINDERS) {
+  if(global.REMINDERS) {
     var now = new Date();
     var currentWeek = getCurrentWeek_(now);
     
     if(Array.isArray(currentWeek)) {
       var result = checkReminderRequired_(now, currentWeek[0]); // get current week date
       
-      if(TESTING_REMINDER) {
+      if(reminderConfig.TESTING) {
         result = true;
       }
       
       if(result) {
-        var subject = REMINDER_SUBJECT;
-        var message = REMINDER_MESSAGE;
+        var subject = global.REMINDER_SUBJECT;
+        var message = global.REMINDER_MESSAGE;
         
         var playerColumns = getRosteredPlayerColumns_(currentWeek);
         var recipients = getIndividualPlayerEmails_(playerColumns);
         
-        if(TESTING_REMINDER) {
+        if(reminderConfig.TESTING) {
           message += '\nrecipients: ' + recipients + '\n';
           recipients = [Session.getActiveUser().getEmail()];
         }
@@ -73,12 +71,12 @@ function getCurrentWeek_(now) {
   
   // get all roster weeks
   var currentSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  var rosterSheet = currentSpreadsheet.getSheetByName(ROSTER_SHEET_NAME);
+  var rosterSheet = currentSpreadsheet.getSheetByName(global.ROSTER_SHEET_NAME);
     
   var numOfPlayers = getNumOfPlayers(rosterSheet);
   var numOfColumns = numOfPlayers + 1; // add date column
     
-  var rosterRange = rosterSheet.getRange(FIRST_ROSTER_ROW,DATE_COLUMN,MAX_ROSTER_ROWS,numOfColumns);
+  var rosterRange = rosterSheet.getRange(global.FIRST_ROSTER_ROW,global.DATE_COLUMN,global.MAX_ROSTER_ROWS,numOfColumns);
   var weeks = rosterRange.getValues();
   
   if(Array.isArray(weeks)) {
@@ -100,8 +98,8 @@ function checkReminderRequired_(now, weekValue) {
   // convert date stamp to Date
   var weekDate = parseDate(weekValue);
   
-  // within REMINDER_SEND_BEFORE_DAYS of the current week date
-  if(equalDatesWithinTolerance(now, weekDate, REMINDER_SEND_BEFORE_DAYS * ONE_DAY_MS)) {
+  // within global.REMINDER_SEND_BEFORE_DAYS of the current week date
+  if(equalDatesWithinTolerance(now, weekDate, global.REMINDER_SEND_BEFORE_DAYS * ONE_DAY_MS)) {
   
     // check if reminder date is set
     if(isRemindered_()) {
@@ -110,8 +108,8 @@ function checkReminderRequired_(now, weekValue) {
       // convert date stamp to Date
       var reminderDate = parseDate(currentValue);
       
-      // if the reminder date is within the REMINDER_SEND_BEFORE_DAYS days, email has already been sent
-      if(equalDatesWithinTolerance(now, reminderDate, REMINDER_SEND_BEFORE_DAYS * ONE_DAY_MS)) {
+      // if the reminder date is within the global.REMINDER_SEND_BEFORE_DAYS days, email has already been sent
+      if(equalDatesWithinTolerance(now, reminderDate, global.REMINDER_SEND_BEFORE_DAYS * ONE_DAY_MS)) {
         return false; // do not send email
       }
     }
@@ -131,7 +129,7 @@ function getRosteredPlayerColumns_(weekArray) {
   if(Array.isArray(weekArray)) {
     // start with first rostered value
     for(var i=1; i < weekArray.length; i++) {
-      if(weekArray[i] === ROSTERED) {
+      if(weekArray[i] === global.ROSTERED) {
         playerColumns.push(i);
       }
     }
@@ -145,13 +143,13 @@ function getRosteredPlayerColumns_(weekArray) {
  */
 function setReminder_(newValue) { 
   var currentSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  var updatedSheet = currentSpreadsheet.getSheetByName(UPDATED_SHEET_NAME);
+  var updatedSheet = currentSpreadsheet.getSheetByName(global.UPDATED_SHEET_NAME);
   
   checkUpdatedSheetExists();
   
   if(updatedSheet) {
     // set first cell in second row
-    updatedSheet.getRange(UPDATED_REMINDER_ROW,1,1,1).setValue(newValue);
+    updatedSheet.getRange(global.UPDATED_REMINDER_ROW,1,1,1).setValue(newValue);
   }
 }
 
@@ -160,13 +158,13 @@ function setReminder_(newValue) {
  */
 function getReminder_() { 
   var currentSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  var updatedSheet = currentSpreadsheet.getSheetByName(UPDATED_SHEET_NAME);
+  var updatedSheet = currentSpreadsheet.getSheetByName(global.UPDATED_SHEET_NAME);
   
   var currentValue;
   
   if(updatedSheet) {
     // get first cell in second row
-    currentValue = updatedSheet.getRange(UPDATED_REMINDER_ROW,1,1,1).getValue();
+    currentValue = updatedSheet.getRange(global.UPDATED_REMINDER_ROW,1,1,1).getValue();
   }
   
   return currentValue;
@@ -188,7 +186,7 @@ function isRemindered_() {
 
 /**
  * Manual Tests (relies on Roster and Updated sheet values,
- * TESTING_REMINDER should be set to true before running
+ * reminderConfig.TESTING should be set to true before running
  * some individual tests)
  */
 function test_manual_reminder_suite() {
@@ -197,11 +195,11 @@ function test_manual_reminder_suite() {
   test_checkReminderRequired();
   test_getRosteredPlayerColumns();
   
-  TESTING_REMINDER = true;
+  reminderConfig.TESTING = true;
   
   test_triggerReminder();
   
-  TESTING_REMINDER = false;
+  reminderConfig.TESTING = false;
 }
 
 function test_setReminder() {
