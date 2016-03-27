@@ -1,5 +1,5 @@
 /**
- * V1.0.5
+ * V1.0.6
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -35,7 +35,7 @@ function triggerReminder() {
     var currentWeek = getCurrentWeek_(now);
     
     if(Array.isArray(currentWeek)) {
-      var result = checkReminderRequired_(now, currentWeek[0]); // get current week date
+      var result = isReminderRequired_(now, currentWeek[0]); // get current week date
       
       if(reminderConfig.TESTING) {
         result = true;
@@ -93,7 +93,7 @@ function getCurrentWeek_(now) {
 /**
  * Triggered to check if a reminder notification is required
  */
-function checkReminderRequired_(now, weekValue) {
+function isReminderRequired_(now, weekValue) {
   
   // convert date stamp to Date
   var weekDate = parseDate(weekValue);
@@ -108,8 +108,9 @@ function checkReminderRequired_(now, weekValue) {
       // convert date stamp to Date
       var reminderDate = parseDate(currentValue);
       
-      // if the reminder date is within the global.REMINDER_SEND_BEFORE_DAYS days, email has already been sent
-      if(equalDatesWithinTolerance(now, reminderDate, global.REMINDER_SEND_BEFORE_DAYS * ONE_DAY_MS)) {
+      // if the reminder date is within the REMINDER_SEND_BEFORE_DAYS days of 
+      // the current week date, email has already been sent, do not send email
+      if(equalDatesWithinTolerance(reminderDate, weekDate, REMINDER_SEND_BEFORE_DAYS * ONE_DAY_MS)) {
         return false; // do not send email
       }
     }
@@ -192,7 +193,7 @@ function isRemindered_() {
 function test_manual_reminder_suite() {
   test_setReminder();
   test_isRemindered();
-  test_checkReminderRequired();
+  test_isReminderRequired();
   test_getRosteredPlayerColumns();
   
   reminderConfig.TESTING = true;
@@ -230,28 +231,29 @@ function test_isRemindered() {
   GSUnit.assertFalse('Is empty reminder', actual);
 }
 
-function test_checkReminderRequired() {
+function test_isReminderRequired() {
   var weekValue = "23 Feb 2016";
   var now = createLocalDate(2016, 2, 22, 6, 0, 0);
   var testDate = '';
   setReminder_(testDate); // clear reminder
   
-  var actual = checkReminderRequired_(now, weekValue);
+  var actual = isReminderRequired_(now, weekValue);
   
   GSUnit.assertTrue('Within a date, send email', actual);
 
-  testDate = now - (ONE_DAY_MS + ONE_DAY_MS);
+  testDate = new Date(now.getTime() - (ONE_DAY_MS + ONE_DAY_MS)); // 20/02/2016 06:00:00
   setReminder_(testDate.toString());
   
-  actual = checkReminderRequired_(now, weekValue);
+  actual = isReminderRequired_(now, weekValue);
   
   GSUnit.assertTrue('Still within a date, existing reminder, send email', actual);
   
-  testDate = now - (ONE_HOUR_MS);
+  now.setTime(now.getTime() + ONE_DAY_MS); // 23/02/2016 06:00:00
+  testDate.setTime(now.getTime() - (ONE_DAY_MS + ONE_MINUTE_MS)); // 22/02/2016 05:59:00
   
   setReminder_(testDate.toString());
   
-  actual = checkReminderRequired_(now, weekValue);
+  actual = isReminderRequired_(now, weekValue);
   
   GSUnit.assertFalse('Still within a date, reminder already set, do not email', actual);
   
@@ -259,7 +261,7 @@ function test_checkReminderRequired() {
   testDate = '';
   setReminder_(testDate); // clear reminder
   
-  actual = checkReminderRequired_(now, weekValue);
+  actual = isReminderRequired_(now, weekValue);
 
   GSUnit.assertFalse('Older than a day, do not email', actual);
   
@@ -267,7 +269,7 @@ function test_checkReminderRequired() {
   testDate = '';
   setReminder_(testDate); // clear reminder
   
-  actual = checkReminderRequired_(now, weekValue);
+  actual = isReminderRequired_(now, weekValue);
 
   GSUnit.assertTrue('Within a date, newer than a day', actual);
   
@@ -275,7 +277,7 @@ function test_checkReminderRequired() {
   testDate = '';
   setReminder_(testDate); // clear reminder
   
-  actual = checkReminderRequired_(now, weekValue);
+  actual = isReminderRequired_(now, weekValue);
 
   GSUnit.assertFalse('Newer than a day', actual);
   
