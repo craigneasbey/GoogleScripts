@@ -1,5 +1,5 @@
 /**
- * V1.0.8
+ * V1.0.9
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -305,5 +305,42 @@ function test_allocatePlayers() {
 
 function test_removePastWeeks() {
   removePastWeeks_();
+}
+
+
+
+/**
+ * Master Tests
+ */
+function test_master_suite() {
+  test_roster_suite();
+  test_allocate_suite();
+  test_array_suite();
+  test_date_suite();
+  //test_load_config_suite(); // TODO
+  test_refresh_suite();
+}
+
+
+/**
+ * Master Manual Tests
+ */
+function test_master_manual_suite() {
+  test_manual_notification_suite();
+  test_manual_reminder_suite();
+  test_manual_updated_suite();
+}
+
+
+
+// TODO - test running closure to initialise variables first
+// instead of needing local configuration object
+(function() {
+  localVariable = 'init this';
+})();
+ 
+ 
+function test_localVariable() {
+  Logger.log("localVariable: " + localVariable);
 }
 
