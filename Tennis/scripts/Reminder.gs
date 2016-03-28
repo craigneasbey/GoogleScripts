@@ -1,5 +1,5 @@
 /**
- * V1.0.6
+ * V1.0.7
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -110,7 +110,7 @@ function isReminderRequired_(now, weekValue) {
       
       // if the reminder date is within the REMINDER_SEND_BEFORE_DAYS days of 
       // the current week date, email has already been sent, do not send email
-      if(equalDatesWithinTolerance(reminderDate, weekDate, REMINDER_SEND_BEFORE_DAYS * ONE_DAY_MS)) {
+      if(equalDatesWithinTolerance(reminderDate, weekDate, global.REMINDER_SEND_BEFORE_DAYS * ONE_DAY_MS)) {
         return false; // do not send email
       }
     }
