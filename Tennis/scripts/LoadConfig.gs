@@ -1,5 +1,5 @@
 /**
- * V1.0.1
+ * V1.0.2
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -128,9 +128,8 @@ function getConfigTable() {
   configTableLoaded = defaultFor_(configTableLoaded, false);
   
   if(!configTableLoaded) {
+    configTable = loadConfigTable();
     configTableLoaded = true;
-    
-    configTable = defaultFor_(configTable, loadConfigTable());
   }
   
   return configTable;
@@ -152,18 +151,34 @@ function loadConfigTable() {
   
   return dataRange.getValues();
 }
- 
+
+
 /**
- * Manual Tests (replies on Configuration sheet values)
+ * Tests
  */
-function test_manual_load_config_suite() {
+function test_load_config_suite() {
+  test_getConfigTable();
   test_getStrConfig();
   test_getNumConfig();
   test_getBoolConfig();
 }
 
+function test_getConfigTable() {
+  configTableLoaded = true;
+  configTable = [['DEFAULT_YEAR', '2020']];
+  
+  var expectedArray = new Array();
+  expectedArray[0] = new Array('DEFAULT_YEAR', '2020');
+  
+  var actualArray = getConfigTable();
+  
+  Logger.log(GSUnit.assertArrayEquals('Get config table', expectedArray, actualArray));
+}
+
 function test_getStrConfig() {
-  var expected = "2016";
+  configTableLoaded = true;
+  configTable = [['DEFAULT_YEAR', '2080']];
+  var expected = "2080";
 	
   var actual = getStrConfig("DEFAULT_YEAR", "2015");
   
@@ -174,9 +189,13 @@ function test_getStrConfig() {
   actual = getStrConfig("NO_KEY", "2015");
   
   GSUnit.assertEquals('Get config string NO_KEY', expected, actual);
+
+  configTableLoaded = false;
 }
 
 function test_getNumConfig() {
+  configTableLoaded = true;
+  configTable = [['MEMBER_EMAIL_ROW', 5]];
   var expected = 5;
 	
   var actual = getNumConfig("MEMBER_EMAIL_ROW", 7);
@@ -188,9 +207,13 @@ function test_getNumConfig() {
   actual = getNumConfig("NO_KEY", 7);
   
   GSUnit.assertEquals('Get config number NO_KEY', expected, actual);
+  
+  configTableLoaded = false;
 }
 
 function test_getBoolConfig() {
+  configTableLoaded = true;
+  configTable = [['REMINDERS', true]];
   var expected = true;
 	
   var actual = getBoolConfig("REMINDERS", false);
@@ -202,5 +225,59 @@ function test_getBoolConfig() {
   actual = getBoolConfig("NO_KEY", false);
   
   GSUnit.assertEquals('Get config number NO_KEY', expected, actual);
+  
+  configTableLoaded = false;
+}
+
+ 
+/**
+ * Manual Tests (replies on Configuration sheet values)
+ */
+function test_manual_load_config_suite() {
+  test_manual_getStrConfig();
+  test_manual_getNumConfig();
+  test_manual_getBoolConfig();
+}
+
+function test_manual_getStrConfig() {
+  var expected = "2016";
+	
+  var actual = getStrConfig("DEFAULT_YEAR", "2015");
+  
+  GSUnit.assertEquals('Get config manual DEFAULT_YEAR', expected, actual.toString());
+  
+  expected = "2015";
+	
+  actual = getStrConfig("NO_KEY", "2015");
+  
+  GSUnit.assertEquals('Get config string manual NO_KEY', expected, actual);
+}
+
+function test_manual_getNumConfig() {
+  var expected = 5;
+	
+  var actual = getNumConfig("MEMBER_EMAIL_ROW", 7);
+  
+  GSUnit.assertEquals('Get config manual MEMBER_EMAIL_ROW', expected, actual);
+  
+  expected = 7;
+	
+  actual = getNumConfig("NO_KEY", 7);
+  
+  GSUnit.assertEquals('Get config number manual NO_KEY', expected, actual);
+}
+
+function test_manual_getBoolConfig() {
+  var expected = true;
+	
+  var actual = getBoolConfig("REMINDERS", false);
+  
+  GSUnit.assertEquals('Get config manual REMINDERS', expected, actual);
+  
+  expected = false;
+	
+  actual = getBoolConfig("NO_KEY", false);
+  
+  GSUnit.assertEquals('Get config number manual NO_KEY', expected, actual);
 }
 
