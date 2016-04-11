@@ -20,8 +20,8 @@ var SPREADSHEET_DOCUMENT_ID = '';
 
 ## Roster Menu
 The Roster menu allows the user to:
-* Generate Dates - current it prints the date of each Tuesday
-* Allocate Players - roster which players are playing
+* Generate Dates - displays the dates of each rostered weekday
+* Allocate Players - rosters which players are playing for the selected weeks
 * Email Players - sends an email to all players with the spreadsheet attached
 * Remove past weeks - removes the past rostered weeks to retain the size
 
