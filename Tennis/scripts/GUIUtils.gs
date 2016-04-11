@@ -1,5 +1,5 @@
 /**
- * V1.0.0
+ * V1.1.0
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -8,18 +8,19 @@
  * Created by craigneasbey (https://github.com/craigneasbey/GoogleScripts/tree/master/Tennis)
  */
 
-loadGlobalConfig();
+var GUIUtils = {};
 
 // create local configuration object
-var guiConfig = {};
-guiConfig.TESTING = false;
+GUIUtils.Config = {};
+GUIUtils.Config.TESTING = false;
+Logger.log("GUI Utilities configuration loaded");
 
-var CANCEL = 'CANCEL';
+GUIUtils.CANCEL = 'CANCEL';
 
 /**
  * Display dialog for user to confirm the something is correct
  */
-function openCheckDialog(promptTitle, promptText) {
+GUIUtils.openCheckDialog = function(promptTitle, promptText) {
   
   var ui = SpreadsheetApp.getUi(),
       response = ui.alert(
@@ -41,7 +42,7 @@ function openCheckDialog(promptTitle, promptText) {
 /**
  * Display dialog for user to enter text
  */
-function openEntryDialog(promptTitle, promptText) {
+GUIUtils.openEntryDialog = function(promptTitle, promptText) {
   
   var ui = SpreadsheetApp.getUi(),
       response = ui.prompt(
@@ -59,7 +60,7 @@ function openEntryDialog(promptTitle, promptText) {
    Logger.log('The user clicked "Cancel" or the close button in the dialog\'s title bar.');
  }
   
-  return CANCEL;
+  return GUIUtils.CANCEL;
 }
 
 
@@ -67,10 +68,10 @@ function openEntryDialog(promptTitle, promptText) {
  * Manual Tests
  */
 function test_openCheckDialog() {
-  openCheckDialog('Check title', 'Check text');
+  GUIUtils.openCheckDialog('Check title', 'Check text');
 }
 
 function test_openEntryDialog() {
-  openEntryDialog('Entry title', 'Entry text');
+  GUIUtils.openEntryDialog('Entry title', 'Entry text');
 }
 

@@ -1,5 +1,5 @@
 /**
- * V1.0.2
+ * V1.1.0
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -10,30 +10,38 @@
 
 var configSheetName;
 var configLoaded;
-var global;
+var configGlobal;
 var configTableLoaded;
 var configTable;
 
 /**
- * Each script calls this function to ensure the global configuration variables have been set
+ * Each script calls this function to ensure the global configuration 
+ * variables have been set before running local code
  */
-function loadGlobalConfig() {
-  configLoaded = defaultFor_(configLoaded, false);
-  configSheetName = defaultFor_(configSheetName, 'Configuration');
+function Global() {
+  configSheetName = defaultFor(configSheetName, 'Configuration');
+  configLoaded = defaultFor(configLoaded, false);
   
   if(!configLoaded) {
+    configGlobal = getGlobalConfigObject();
     configLoaded = true;
-    
-    global = defaultFor_(global, getGlobalConfigObject());
+    Logger.log("Global configuration loaded");
   }
+  
+  return configGlobal;
 }
 
-function getGlobalConfigObject(globalConfig) {
+/**
+ * Creates a global configuration object from the configuration table
+ */
+function getGlobalConfigObject() {
   var globalConfig = {};
   
+  globalConfig.MENU_ITEM_GENERATE = getStrConfig("MENU_ITEM_GENERATE", 'Generate dates...');
   globalConfig.MENU_ITEM_ALLOCATE = getStrConfig("MENU_ITEM_ALLOCATE", 'Allocate players...');
   globalConfig.MENU_ITEM_EMAIL = getStrConfig("MENU_ITEM_EMAIL", 'Email players...');
   globalConfig.MENU_ITEM_REMOVE = getStrConfig("MENU_ITEM_REMOVE", 'Remove past weeks...');
+  globalConfig.DAY_OF_WEEK = getNumConfig("DAY_OF_WEEK", 2); // 0 to 6 (0 = Sunday, 5 = Friday)
   globalConfig.EMAIL_MEMBERS_DIALOG_TITLE = getStrConfig("EMAIL_MEMBERS_DIALOG_TITLE", 'Email Players');
   globalConfig.ROSTER_SHEET_NAME = 'Roster';
   globalConfig.UPDATED_SHEET_NAME = 'Updated';
@@ -104,8 +112,7 @@ function getConfig_(configKey, defaultValue) {
  * Get a configuration by key from the configuration table
  */
 function getConfigFromTable_(configKey) {
-  
-  var data = getConfigTable();
+  var data = getConfigTable_();
   
   // for each row
   for (i in data) {
@@ -124,12 +131,13 @@ function getConfigFromTable_(configKey) {
 /**
  * Get the configuration table only if it has not already been loaded
  */
-function getConfigTable() {
-  configTableLoaded = defaultFor_(configTableLoaded, false);
+function getConfigTable_() {
+  configTableLoaded = defaultFor(configTableLoaded, false);
   
   if(!configTableLoaded) {
-    configTable = loadConfigTable();
+    configTable = loadConfigTable_();
     configTableLoaded = true;
+    Logger.log("Configuration table loaded");
   }
   
   return configTable;
@@ -138,7 +146,7 @@ function getConfigTable() {
 /**
  * Get entire configuration table from the Configuration sheet of key/value pairs
  */
-function loadConfigTable() {
+function loadConfigTable_() {
   var currentSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   var configSheet = currentSpreadsheet.getSheetByName(configSheetName);
   
@@ -149,7 +157,22 @@ function loadConfigTable() {
   
   var dataRange = configSheet.getRange(startRow, startCol, numRows, numCols);
   
-  return dataRange.getValues();
+  return removeEmptyKeys_(dataRange.getValues());
+}
+
+/**
+ * Removed any empty keys from the configuration table array
+ */
+function removeEmptyKeys_(configArray) {
+  if(Array.isArray(configArray)) {
+    for(var i=0; i < configArray.length; i++) {
+      if(isEmptyStr(configArray[i][0])) {
+        delete configArray[i];
+      }
+    }
+  }
+  
+  return configArray;
 }
 
 
@@ -170,7 +193,7 @@ function test_getConfigTable() {
   var expectedArray = new Array();
   expectedArray[0] = new Array('DEFAULT_YEAR', '2020');
   
-  var actualArray = getConfigTable();
+  var actualArray = getConfigTable_();
   
   Logger.log(GSUnit.assertArrayEquals('Get config table', expectedArray, actualArray));
 }

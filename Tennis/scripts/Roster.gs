@@ -1,5 +1,5 @@
 /**
- * V1.0.10
+ * V1.1.0
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -8,63 +8,44 @@
  * Created by craigneasbey (https://github.com/craigneasbey/GoogleScripts/tree/master/Tennis)
  */
 
-loadGlobalConfig();
+var Roster = {};
 
 // create local configuration object
-var rosterConfig = {};
-rosterConfig.TESTING = false;
-rosterConfig.DATE_COLUMN = 1; // the first column is the week date
-rosterConfig.ROSTER_SHEET_NAME = global.ROSTER_SHEET_NAME;
-if(rosterConfig.TESTING) {
-  rosterConfig.ROSTER_SHEET_NAME = 'IGNORE - TESTING ONLY';
+Roster.Config = {};
+Roster.Config.TESTING = false;
+Roster.Config.DATE_COLUMN = 1; // the first column is the week date
+Roster.Config.ROSTER_SHEET_NAME = Global().ROSTER_SHEET_NAME;
+if(Roster.Config.TESTING) {
+  Roster.Config.ROSTER_SHEET_NAME = 'IGNORE - TESTING ONLY';
 }
+Logger.log("Roster configuration loaded");
 
 /**
- * Runs when the spreadsheet is open, adds a menu to the spreadsheet
+ * Generate Dates for members schedule
  */
-function onOpen() {
-  var spreadsheet = SpreadsheetApp.getActive();
-  var menuItems = [
-    {name: 'Generate dates...', functionName: 'generateDates_'},
-    {name: global.MENU_ITEM_ALLOCATE, functionName: 'allocatePlayers_'},
-    {name: global.MENU_ITEM_EMAIL, functionName: 'emailPlayersMessage_'},
-    {name: global.MENU_ITEM_REMOVE, functionName: 'removePastWeeks_'}
-  ];
-  spreadsheet.addMenu('Roster', menuItems);
-}
+Roster.generateDates = function() {
+  Logger.log("Roster.generateDates function called");
+  var defaultYear = Global().DEFAULT_YEAR;
+  var dayOfWeek = Global().DAY_OF_WEEK;
 
-/**
- * Runs when spreadsheet cell has finished editing
- */
-function onEdit(e) {
-  //Logger.log("onEdit: " + JSON.stringify(e));
-  
-  checkUpdated(e);
-}
-
-/**
- * Generate Dates for players schedule
- */
-function generateDates_() {
-  var defaultYear = global.DEFAULT_YEAR;
-
-  var year = openEntryDialog('Generate Dates', 'Enter year (default ' + defaultYear + '):');
+  var year = GUIUtils.openEntryDialog('Generate Dates', 'Enter year (default ' + defaultYear + '):');
   Logger.log('year: ' + year);
   
-  if(year !== CANCEL) {
-    year = defaultFor_(year, defaultYear);
+  if(year !== GUIUtils.CANCEL) {
+    year = defaultFor(year, defaultYear);
     
     var html = HtmlService.createHtmlOutputFromFile('dates.html')
     .setTitle('Year ' + year + ' Dates').setSandboxMode(HtmlService.SandboxMode.IFRAME);
-    html.append("<script>var year = " + year + "</script>");
+    html.append("<script>var year = " + year + "; var dayOfWeek = " + dayOfWeek + ";</script>");
     SpreadsheetApp.getUi().showSidebar(html);
   }
 }
 
 /**
- * Generate Roster for players schedule
+ * Generate Roster for members schedule
  */
-function allocatePlayers_() {
+Roster.allocateMembers = function() {
+  Logger.log("Roster.allocateMembers function called");
   var currentSheet = SpreadsheetApp.getActiveSheet();
   var currentRange = currentSheet.getActiveRange();
   
@@ -73,12 +54,12 @@ function allocatePlayers_() {
   var result = false;
   
   // verify range
-  if(!rosterConfig.TESTING) {
+  if(!Roster.Config.TESTING) {
     promptTitle = 'Roster Range Selected', 
     promptText = 'The current selected range is: ' + currentRange.getA1Notation();
     promptText += '.\n\n Are you sure you want to continue allocating rostered members in that range?', 
     
-    result = openCheckDialog(promptTitle, promptText);
+    result = GUIUtils.openCheckDialog(promptTitle, promptText);
   } else {
     result = true;
   }
@@ -86,35 +67,35 @@ function allocatePlayers_() {
   if(result) {
     Logger.log("current range: " + JSON.stringify(currentRange));
 
-    var maxWeeksPlay = global.DEFAULT_MAX_WEEKS_ROSTERED;
-    var maxWeeksRest = global.DEFAULT_MAX_WEEKS_REST;
+    var maxWeeksRostered = Global().DEFAULT_MAX_WEEKS_ROSTERED;
+    var maxWeeksRest = Global().DEFAULT_MAX_WEEKS_REST;
     
     // get configuration from user
-    if(!rosterConfig.TESTING) {
+    if(!Roster.Config.TESTING) {
       promptTitle = 'Allocation Configuration';
-      promptText = 'Enter maximum consecutive weeks rostered (default ' + global.DEFAULT_MAX_WEEKS_ROSTERED + '):';
-      maxWeeksPlay = openEntryDialog(promptTitle, promptText);
+      promptText = 'Enter maximum consecutive weeks rostered (default ' + Global().DEFAULT_MAX_WEEKS_ROSTERED + '):';
+      maxWeeksRostered = GUIUtils.openEntryDialog(promptTitle, promptText);
       
-      if(maxWeeksPlay === CANCEL) {
+      if(maxWeeksRostered === GUIUtils.CANCEL) {
         return;
       }
       
-      promptText = 'Enter maximum consecutive weeks resting (default ' + global.DEFAULT_MAX_WEEKS_REST + '):';
-      maxWeeksRest = openEntryDialog(promptTitle, promptText);
+      promptText = 'Enter maximum consecutive weeks resting (default ' + Global().DEFAULT_MAX_WEEKS_REST + '):';
+      maxWeeksRest = GUIUtils.openEntryDialog(promptTitle, promptText);
       
-      if(maxWeeksRest === CANCEL) {
+      if(maxWeeksRest === GUIUtils.CANCEL) {
         return;
       }
     }
     
-    maxWeeksPlay = defaultFor_(maxWeeksPlay, global.DEFAULT_MAX_WEEKS_ROSTERED);
-    maxWeeksRest = defaultFor_(maxWeeksRest, global.DEFAULT_MAX_WEEKS_REST);
+    maxWeeksRostered = defaultFor(maxWeeksRostered, Global().DEFAULT_MAX_WEEKS_ROSTERED);
+    maxWeeksRest = defaultFor(maxWeeksRest, Global().DEFAULT_MAX_WEEKS_REST);
     
     // get the selected history
-    var historyArray = getPlayersHistory_(maxWeeksPlay, maxWeeksRest, currentRange, currentSheet);
+    var historyArray = Roster.getMembersHistory(maxWeeksRostered, maxWeeksRest, currentRange, currentSheet);
     
-    // allocate roster for selected players
-    var save = allocateSelectedPlayers_(maxWeeksPlay, maxWeeksRest, historyArray, currentRange, currentSheet);
+    // allocate roster for selected members
+    var save = Roster.allocateSelectedMembers(maxWeeksRostered, maxWeeksRest, historyArray, currentRange, currentSheet);
     
     if(save) {
       SpreadsheetApp.flush();
@@ -123,30 +104,28 @@ function allocatePlayers_() {
 }
 
 /*
- * Get playing/rest history from sheet
+ * Get rostered/rest history from sheet
  */
-function getPlayersHistory_(maxWeeksPlay, maxWeeksRest, currentRange, currentSheet) {
-  var historyLength = maxWeeksPlay > maxWeeksRest ? maxWeeksPlay : maxWeeksRest;
+Roster.getMembersHistory = function(maxWeeksRostered, maxWeeksRest, currentRange, currentSheet) {
+  var historyLength = maxWeeksRostered > maxWeeksRest ? maxWeeksRostered : maxWeeksRest;
   var currentRowIndex = currentRange.getRow();
   var currentColumnIndex = currentRange.getColumn();
   
   var historyRows = currentSheet.getRange(currentRowIndex - historyLength, currentColumnIndex, historyLength, currentRange.getNumColumns());
-  var historyRowsValues = historyRows.getValues();
-  
-  var historyArray = rotate(historyRowsValues, 90); // rotate array to the right
+  var historyArray = historyRows.getValues();
   
   return historyArray;
 }
 
 /*
- * Allocate players for selected roster
+ * Allocate members for selected roster
  */
-function allocateSelectedPlayers_(maxWeeksPlay, maxWeeksRest, historyArray, currentRange, currentSheet)
+Roster.allocateSelectedMembers = function(maxWeeksRostered, maxWeeksRest, historyArray, currentRange, currentSheet)
 {
   var result = false;
   var currentColumnIndex = currentRange.getColumn();
   var currentWidth = currentRange.getNumColumns();
-  var fillTeam = { "start" : 0 };
+  var fillTeam = { "start" : 0 }; // move the start to the first member when looking for another available member to roster
   
   // for each row(week) of the current range
   for(var i=currentRange.getRow(); i < currentRange.getRow() + currentRange.getNumRows(); i++) {
@@ -154,11 +133,11 @@ function allocateSelectedPlayers_(maxWeeksPlay, maxWeeksRest, historyArray, curr
     var currentRow = currentSheet.getRange(i, currentColumnIndex, numOfRows, currentWidth);
     var currentRowArrayArray = currentRow.getValues();
     
-    var weekArray = allocatePlayersForWeek(currentRowArrayArray[0], historyArray, maxWeeksPlay, maxWeeksRest, fillTeam);
+    var weekArray = AllocateMembers.allocateMembersForWeek(currentRowArrayArray[0], historyArray, maxWeeksRostered, maxWeeksRest, fillTeam);
     
     currentRow.setValues([weekArray]);
     
-    historyArray = progressPlayersHistory_(historyArray, weekArray);
+    historyArray = Roster.progressMembersHistory(historyArray, weekArray);
     
     result = true;
   }
@@ -169,59 +148,57 @@ function allocateSelectedPlayers_(maxWeeksPlay, maxWeeksRest, historyArray, curr
 /**
  * Move history array down the sheet, remove the oldest row, add the latest row
  */
-function progressPlayersHistory_(historyArray, newRow) {
-  historyArray = rotate(historyArray, -90); // rotate array to the left
-  
+Roster.progressMembersHistory = function(historyArray, newRow) {  
   historyArray.shift(); // remove top
   historyArray.push(newRow); // add new row to bottom
-  
-  historyArray = rotate(historyArray, 90); // rotate array to the right again
   
   return historyArray;
 }
 
 /**
- * Email all players with a subject and message 
+ * Email all members with a subject and message 
  */
-function emailPlayersMessage_() {
+Roster.emailMembersMessage = function() {
+  Logger.log("Roster.emailMembersMessage function called");
  
   // get subject
-  var subject = openEntryDialog(global.EMAIL_MEMBERS_DIALOG_TITLE, 'Subject:');
+  var subject = GUIUtils.openEntryDialog(Global().EMAIL_MEMBERS_DIALOG_TITLE, 'Subject:');
   
-  if(subject === CANCEL) {
+  if(subject === GUIUtils.CANCEL) {
     return;
   }
   
   // get message
-  var message = openEntryDialog(global.EMAIL_MEMBERS_DIALOG_TITLE, 'Message:');
+  var message = GUIUtils.openEntryDialog(Global().EMAIL_MEMBERS_DIALOG_TITLE, 'Message:');
   
-  if(message === CANCEL) {
+  if(message === GUIUtils.CANCEL) {
     return;
   }
   
-  emailPlayers_(subject, message);
+  Notification.emailMembers(subject, message);
 }
 
 /**
  * Remove all weeks older than maximum weeks history required
  */
-function removePastWeeks_() {
-  var historyLength = global.DEFAULT_MAX_WEEKS_ROSTERED > global.DEFAULT_MAX_WEEKS_REST ? global.DEFAULT_MAX_WEEKS_ROSTERED : global.DEFAULT_MAX_WEEKS_REST;
+Roster.removePastWeeks = function() {
+  Logger.log("Roster.removePastWeeks function called");
+  var historyLength = Global().DEFAULT_MAX_WEEKS_ROSTERED > Global().DEFAULT_MAX_WEEKS_REST ? Global().DEFAULT_MAX_WEEKS_ROSTERED : Global().DEFAULT_MAX_WEEKS_REST;
 
   // get configuration from user
-  if(!rosterConfig.TESTING) {
+  if(!Roster.Config.TESTING) {
     var promptText = 'Enter maximum past weeks to keep (default ' + historyLength + '):';
-    var maxWeeksHistory = openEntryDialog('Remove Past Weeks Configuration', promptText);
+    var maxWeeksHistory = GUIUtils.openEntryDialog('Remove Past Weeks Configuration', promptText);
     
-    if(maxWeeksHistory === CANCEL) {
+    if(maxWeeksHistory === GUIUtils.CANCEL) {
       return;
     }
     
-    historyLength = defaultFor_(maxWeeksHistory, historyLength);
+    historyLength = defaultFor(maxWeeksHistory, historyLength);
   }
 
   // remove history week rows
-  var save = removeHistory_(historyLength);
+  var save = Roster.removeHistory_(historyLength);
     
   if(save) {
     SpreadsheetApp.flush();
@@ -231,18 +208,18 @@ function removePastWeeks_() {
 /**
  * Remove history week rows older than the history length
  */
-function removeHistory_(retainHistoryLength) {
+Roster.removeHistory = function(retainHistoryLength) {
   var currentSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  var rosterSheet = currentSpreadsheet.getSheetByName(rosterConfig.ROSTER_SHEET_NAME);
-  //Logger.log('rosterConfig.ROSTER_SHEET_NAME: ' + rosterConfig.ROSTER_SHEET_NAME);
+  var rosterSheet = currentSpreadsheet.getSheetByName(Roster.Config.ROSTER_SHEET_NAME);
+  //Logger.log('Roster.Config.ROSTER_SHEET_NAME: ' + Roster.Config.ROSTER_SHEET_NAME);
   
   // remove all rows between first week index and current week - retainHistoryLength
-  var weekRowIndex = findCurrentWeekIndexOnSheet(rosterSheet);
+  var weekRowIndex = Refresh.findCurrentWeekIndexOnSheet(rosterSheet);
   var deleteNumOfRows = weekRowIndex - retainHistoryLength;
   
-  Logger.log('FIRST_ROSTER_ROW: ' + global.FIRST_ROSTER_ROW + ' deleteNumOfRows: ' + deleteNumOfRows);
+  Logger.log('FIRST_ROSTER_ROW: ' + Global().FIRST_ROSTER_ROW + ' deleteNumOfRows: ' + deleteNumOfRows);
   if(deleteNumOfRows > 0) {
-    rosterSheet.deleteRows(global.FIRST_ROSTER_ROW, deleteNumOfRows);
+    rosterSheet.deleteRows(Global().FIRST_ROSTER_ROW, deleteNumOfRows);
     return true;
   }
     
@@ -254,41 +231,27 @@ function removeHistory_(retainHistoryLength) {
  * Tests
  */
 function test_roster_suite() {
-  test_progressPlayersHistory();
+  test_progressMembersHistory();
 }
 
-
-function test_progressPlayersHistory() {
-  
-  var testArray = new Array("NA","Play","Play","Play","NA","NA","CBA","NA","NA","Play");
-  
-  var expectedArray = new Array();
-  expectedArray[0] = new Array("NA","NA","NA","Play");
-  expectedArray[1] = new Array("Play","Play","Play","CBA");
-  expectedArray[2] = new Array("Play","Play","Play","CBA");
-  expectedArray[3] = new Array("Play","Play","Play","Play");
-  expectedArray[4] = new Array("NA","NA","NA","NA");
-  expectedArray[5] = new Array("NA","NA","NA","NA");
-  expectedArray[6] = new Array("CBA","Play","Play","CBA");
-  expectedArray[7] = new Array("NA","NA","NA","Play");
-  expectedArray[8] = new Array("NA","NA","NA","NA");
-  expectedArray[9] = new Array("Play","CBA","CBA","Play");
+function test_progressMembersHistory() {
+  var newWeekArray = new Array("NA","Play","Play","Play","NA","NA","CBA","NA","NA","Play");
   
   var historyArray = new Array();
-  historyArray[0] = new Array("NA","NA","Play","");
-  historyArray[1] = new Array("Play","Play","CBA","");
-  historyArray[2] = new Array("Play","Play","CBA","");
-  historyArray[3] = new Array("Play","Play","Play","");
-  historyArray[4] = new Array("NA","NA","NA","");
-  historyArray[5] = new Array("NA","NA","NA","");
-  historyArray[6] = new Array("Play","Play","CBA","");
-  historyArray[7] = new Array("NA","NA","Play","");
-  historyArray[8] = new Array("NA","NA","NA","");
-  historyArray[9] = new Array("CBA","CBA","Play","");
+  historyArray[0] = new Array("","","","","","","","","","");
+  historyArray[1] = new Array("Play","CBA","CBA","Play","NA","NA","CBA","Play","NA","Play");
+  historyArray[2] = new Array("NA","Play","Play","Play","NA","NA","Play","NA","NA","CBA");
+  historyArray[3] = new Array("NA","Play","Play","Play","NA","NA","Play","NA","NA","CBA");
   
-  var actualArray = progressPlayersHistory_(historyArray, testArray);
+  var expectedArray = new Array();
+  expectedArray[0] = new Array("Play","CBA","CBA","Play","NA","NA","CBA","Play","NA","Play");
+  expectedArray[1] = new Array("NA","Play","Play","Play","NA","NA","Play","NA","NA","CBA");
+  expectedArray[2] = new Array("NA","Play","Play","Play","NA","NA","Play","NA","NA","CBA");
+  expectedArray[3] = new Array("NA","Play","Play","Play","NA","NA","CBA","NA","NA","Play");
   
-  Logger.log(GSUnit.assertArrayEquals('Progress players history', expectedArray, actualArray));
+  var actualArray = Roster.progressMembersHistory(historyArray, newWeekArray);
+  
+  Logger.log(GSUnit.assertArrayEquals('Progress members history', expectedArray, actualArray));
 }
 
 
@@ -296,15 +259,19 @@ function test_progressPlayersHistory() {
  * Manual Tests
  */
 function test_generateDates() {
-  generateDates_();
+  Roster.generateDates();
 }
 
-function test_allocatePlayers() {
-  allocatePlayers_();
+function test_allocateMembers() {
+  Roster.allocateMembers();
+}
+
+function test_emailMembersMessage() {
+  Roster.emailMembersMessage();
 }
 
 function test_removePastWeeks() {
-  removePastWeeks_();
+  Roster.removePastWeeks();
 }
 
 
@@ -315,10 +282,11 @@ function test_removePastWeeks() {
 function test_master_suite() {
   test_roster_suite();
   test_allocate_suite();
+  test_refresh_suite();
+  test_load_config_suite();
+  test_string_suite();
   test_array_suite();
   test_date_suite();
-  test_load_config_suite();
-  test_refresh_suite();
 }
 
 
@@ -329,18 +297,5 @@ function test_master_manual_suite() {
   test_manual_notification_suite();
   test_manual_reminder_suite();
   test_manual_updated_suite();
-}
-
-
-
-// TODO - test running closure to initialise variables first
-// instead of needing local configuration object
-(function() {
-  localVariable = 'init this';
-})();
- 
- 
-function test_localVariable() {
-  Logger.log("localVariable: " + localVariable);
 }
 

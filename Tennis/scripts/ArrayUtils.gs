@@ -1,5 +1,5 @@
 /**
- * V1.0.1
+ * V1.1.0
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -8,21 +8,28 @@
  * Created by craigneasbey (https://github.com/craigneasbey/GoogleScripts/tree/master/Tennis)
  */
 
-loadGlobalConfig();
+var ArrayUtils = {};
+
+// create local configuration object
+ArrayUtils.Config = {};
+Logger.log("Array Utilities configuration loaded");
 
 /**
- * Convert one dimensional array to two dimensional array for the sheet range
+ * Clone and Rotate array
+ *
+ * a - Array to rotate
+ * intDegrees - degrees of rotation
  */
-function convertToArrayOfArrays(input) {
-  var output = new Array();
+ArrayUtils.arrayCloneRotate = function(sourceArray, intDegrees) {
+  var a;
   
-  if(Array.isArray(input)) {
-    for(var i = 0; i < input.length; i++) {
-      output.push([input[i]]);
-    }
+  if(Array.isArray(sourceArray)) {
+    a = ArrayUtils.arrayRotate(ArrayUtils.arrayClone(sourceArray), intDegrees);
+  } else {
+    a = sourceArray; // sourceArray is not an array
   }
   
-  return output;
+  return a;
 }
 
 /**
@@ -38,12 +45,12 @@ function convertToArrayOfArrays(input) {
  * Note: this algorthm is good also:
  *  http://stackoverflow.com/questions/42519/how-do-you-rotate-a-two-dimensional-array (dimple)
  */
-function rotate(a, intDegrees) {
-    
+ArrayUtils.arrayRotate = function(a, intDegrees) {
+
   if(Array.isArray(a)) {
   
     // added expand and compress as counter clockwise delete causes index issues
-    a = expandArray(a);
+    a = ArrayUtils.expandArray(a);
   
 	var x, y, z;
 	var intWidth;
@@ -107,7 +114,8 @@ function rotate(a, intDegrees) {
 		delete rotRow;
 	}
   
-    a = compressArray(a);
+    // added expand and compress as counter clockwise delete causes index issues
+    a = ArrayUtils.compressArray(a);
   }
   
   return a;
@@ -116,8 +124,13 @@ function rotate(a, intDegrees) {
 /**
  * Expand the array to have equal sides (square)
  */
-function expandArray(a) {
-  if(a && Array.isArray(a[0])) {
+ArrayUtils.expandArray = function(a) {
+  if(a && Array.isArray(a)) {
+    // add second dimension
+    if(!Array.isArray(a[0])) {
+      a = ArrayUtils.convertToArrayOfArrays(a);
+    }
+    
     var arrayLength = a.length;
     
     if(arrayLength > 0) {
@@ -153,7 +166,7 @@ function expandArray(a) {
 /**
  * Compress the array, removing all empty rows or columns on the sides
  */
-function compressArray(a) {
+ArrayUtils.compressArray = function(a) {
   if(a && Array.isArray(a)) {
     var arrayLength = a.length;
     
@@ -243,16 +256,62 @@ function compressArray(a) {
   return a;
 }
 
-//http://blog.andrewray.me/how-to-clone-a-nested-array-in-javascript/
-function arrayClone( arr ) {
+/**
+ * Convert one dimensional array to two dimensional array
+ */
+ArrayUtils.convertToArrayOfArrays = function(input) {
+  var output = new Array();
+  
+  if(Array.isArray(input)) {
+    var clone = ArrayUtils.arrayClone(input);
+    output.push(clone);
+    ArrayUtils.arrayCopy(output, input);
+  }
+  
+  return output;
+}
 
+/**
+ * Removes outer array from two dimensional array to make a one dimensional array
+ */
+ArrayUtils.convertToArray = function(input) {
+  var output = new Array();
+  
+  if(Array.isArray(input)) {
+    if(Array.isArray(input[0])) {
+      ArrayUtils.arrayCopy(input[0], output);
+    }
+  }
+  
+  return output;
+}
+
+/**
+ * Copy contents of one array to another
+ */
+ArrayUtils.arrayCopy = function(source, destination) {
+  // clear destination
+  while (destination.length > 0) { 
+    destination.pop(); 
+  }
+  
+  if(Array.isArray(source)) {
+    for(var i = 0; i < source.length; i++) {
+      destination.push(source[i]);
+    }
+  }
+}
+
+
+// http://blog.andrewray.me/how-to-clone-a-nested-array-in-javascript/
+ArrayUtils.arrayClone = function( arr ) {
     var i, copy;
 
     if( Array.isArray( arr ) ) {
         copy = new Array();
         var j = 0;
         for( i = 0; i < arr.length; i++ ) {
-          var cloned = arrayClone( arr[ i ] );
+          var cloned = ArrayUtils.arrayClone( arr[ i ] );
           if(typeof cloned !== 'undefined') {
             copy[ j ] = cloned;
             j++;
@@ -264,52 +323,14 @@ function arrayClone( arr ) {
     } else {
         return arr;
     }
-
 }
-
-/**
- * Checks if variable is defined
- */
-function isEmpty(val) {
-  if(typeof val !== 'undefined') {
-    if(val !== null) {
-      return false;
-    }
-  }
-  
-  return true;
-}
-
-/**
- * Checks if a string is defined and is empty
- */
-function isEmptyStr(str) {
-  if(typeof str !== 'undefined') {
-    if(str !== null) {
-      if(str !== "") {
-        return false;
-      }
-    }
-  }
-  
-  return true;
-}
-
-/**
- * Check the value, if undefined or empty, return the default
- *
- * http://stackoverflow.com/questions/894860/set-a-default-parameter-value-for-a-javascript-function
- */
-function defaultFor_(value, defaultValue) { 
-  return typeof value !== 'undefined' && value !== '' ? value : defaultValue; 
-}
-
 
 
 /**
  * Tests
  */
 function test_array_suite() {
+  test_clone_rotate_array();
   test_rotate_3_by_2_array_clockwise();
   test_rotate_2_by_3_array_clockwise();
   test_rotate_2_by_3_array_clockwise_back();
@@ -320,9 +341,30 @@ function test_array_suite() {
   test_rotate_4_by_10_array_clockwise();
   test_expand_array();
   test_compress_array();
-  test_isEmptyStr();
-  test_isEmpty();
-  test_defaultFor();
+  test_convert_to_array_of_arrays();
+  test_convert_to_array();
+  test_copy_array();
+  test_clone_array();
+}
+
+function test_clone_rotate_array() {
+  
+  var testArray = new Array("CBA","Play","NA");
+  
+  var expectedArray = new Array();
+  expectedArray[0] = new Array("NA");
+  expectedArray[1] = new Array("Play");
+  expectedArray[2] = new Array("CBA");
+  
+  var expectedTestArray = new Array("CBA","Play");
+  
+  var actualArray = ArrayUtils.arrayCloneRotate(testArray, -90); // rotate array to the left
+  
+  testArray.pop();
+  
+  Logger.log(GSUnit.assertArrayEquals('Clone rotate confirm original test array changed', expectedTestArray, testArray));
+  
+  Logger.log(GSUnit.assertArrayEquals('Cloned and rotated array', expectedArray, actualArray));
 }
 
 function test_rotate_3_by_2_array_clockwise() {
@@ -336,7 +378,7 @@ function test_rotate_3_by_2_array_clockwise() {
   expectedArray[0] = new Array("Play","Play","CBA");
   expectedArray[1] = new Array("CBA","NA","Play");
   
-  var actualArray = rotate(testArray, 90);
+  var actualArray = ArrayUtils.arrayRotate(testArray, 90);
   
   Logger.log(GSUnit.assertArrayEquals('Rotate 3 by 2 array clockwise', expectedArray, actualArray));
 }
@@ -352,7 +394,7 @@ function test_rotate_2_by_3_array_clockwise() {
   expectedArray[1] = new Array("NA","Play");
   expectedArray[2] = new Array("CBA","CBA");
 
-  var actualArray = rotate(testArray, 90);
+  var actualArray = ArrayUtils.arrayRotate(testArray, 90);
 
   Logger.log(GSUnit.assertArrayEquals('Rotate 2 by 3 array clockwise', expectedArray, actualArray));
 }
@@ -367,8 +409,8 @@ function test_rotate_2_by_3_array_clockwise_back() {
   expectedArray[0] = new Array("CBA","Play","CBA");
   expectedArray[1] = new Array("NA","NA","CBA");
 
-  testArray = rotate(testArray, 90);
-  actualArray = rotate(testArray, -90);
+  testArray = ArrayUtils.arrayRotate(testArray, 90);
+  var actualArray = ArrayUtils.arrayRotate(testArray, -90);
 
   Logger.log(GSUnit.assertArrayEquals('Rotate 2 by 3 array clockwise', expectedArray, actualArray));
 }
@@ -384,9 +426,9 @@ function test_rotate_2_by_3_array_clockwise_back_clockwise() {
   expectedArray[1] = new Array("NA","Play");
   expectedArray[2] = new Array("CBA","CBA");
   
-  testArray = rotate(testArray, 90);
-  testArray = rotate(testArray, -90);
-  testArray = rotate(testArray, 90);
+  testArray = ArrayUtils.arrayRotate(testArray, 90);
+  testArray = ArrayUtils.arrayRotate(testArray, -90);
+  testArray = ArrayUtils.arrayRotate(testArray, 90);
 
   Logger.log(GSUnit.assertArrayEquals('Rotate 2 by 3 array clockwise', expectedArray, testArray));
 }
@@ -402,7 +444,7 @@ function test_rotate_2_by_3_array_counter_clockwise() {
   expectedArray[0] = new Array("CBA","Play","CBA");
   expectedArray[1] = new Array("NA","NA","CBA");
 
-  var actualArray = rotate(testArray, -90);
+  var actualArray = ArrayUtils.arrayRotate(testArray, -90);
   
   Logger.log(GSUnit.assertArrayEquals('Rotate 2 by 3 array counter clockwise', expectedArray, actualArray));
 }
@@ -421,7 +463,7 @@ function test_rotate_2_by_6_array_clockwise() {
   expectedArray[0] = new Array("Play","CBA","NA","Play","Play","Play");
   expectedArray[1] = new Array("Play","Play","NA","Play","NA","Play");
 
-  var actualArray = rotate(testArray, 90);
+  var actualArray = ArrayUtils.arrayRotate(testArray, 90);
 
   Logger.log(GSUnit.assertArrayEquals('Rotate 2 by 6 array clockwise', expectedArray, actualArray));
 }
@@ -440,7 +482,7 @@ function test_rotate_empty_2_by_6_array_clockwise() {
   expectedArray[0] = new Array("","","NA","","Play","Play");
   expectedArray[1] = new Array("","","NA","","NA","Play");
 
-  var actualArray = rotate(testArray, 90);
+  var actualArray = ArrayUtils.arrayRotate(testArray, 90);
 
   Logger.log(GSUnit.assertArrayEquals('Rotate 2 by 6 array clockwise', expectedArray, actualArray));
 }
@@ -465,7 +507,7 @@ function test_rotate_4_by_10_array_clockwise() {
   expectedArray[8] = new Array("CBA","CBA","CBA","CBA");
   expectedArray[9] = new Array("CBA","CBA","CBA","CBA");
   
-  var actualArray = rotate(testArray, 90);
+  var actualArray = ArrayUtils.arrayRotate(testArray, 90);
 
   Logger.log(GSUnit.assertArrayEquals('Rotate 4 by 10 array clockwise', expectedArray, actualArray));
 }
@@ -481,7 +523,7 @@ function test_expand_array() {
   expectedArray[2] = new Array(null,null,null,null);
   expectedArray[3] = new Array(null,null,null,null);
   
-  var actualArray = expandArray(testArray);
+  var actualArray = ArrayUtils.expandArray(testArray);
   
   Logger.log(GSUnit.assertArrayEquals('Expand array height', expectedArray, actualArray));
   
@@ -497,9 +539,32 @@ function test_expand_array() {
   expectedArray[2] = new Array("Play","Play",null,null);
   expectedArray[3] = new Array("Play","Play",null,null);
   
-  actualArray = expandArray(testArray);
+  actualArray = ArrayUtils.expandArray(testArray);
   
   Logger.log(GSUnit.assertArrayEquals('Expand array width', expectedArray, actualArray));
+  
+  testArray = new Array("","","","");
+  
+  expectedArray = new Array();
+  expectedArray[0] = new Array("","","","");
+  expectedArray[1] = new Array(null,null,null,null);
+  expectedArray[2] = new Array(null,null,null,null);
+  expectedArray[3] = new Array(null,null,null,null);
+  
+  actualArray = ArrayUtils.expandArray(testArray);
+  
+  Logger.log(GSUnit.assertArrayEquals('Expand empty array to two dimensions', expectedArray, actualArray));
+
+  testArray = new Array("CBA","Play","NA");
+  
+  expectedArray = new Array();
+  expectedArray[0] = new Array("CBA","Play","NA");
+  expectedArray[1] = new Array(null,null,null);
+  expectedArray[2] = new Array(null,null,null);
+  
+  actualArray = ArrayUtils.expandArray(testArray);
+  
+  Logger.log(GSUnit.assertArrayEquals('Expand array to two dimensions', expectedArray, actualArray));
 }
 
 function test_compress_array() {
@@ -513,7 +578,7 @@ function test_compress_array() {
   expectedArray[0] = new Array("CBA","Play","CBA");
   expectedArray[1] = new Array("Play","Play","Play");
   
-  var actualArray = compressArray(testArray);
+  var actualArray = ArrayUtils.compressArray(testArray);
   
   Logger.log(GSUnit.assertArrayEquals('Compress array', expectedArray, actualArray));
   
@@ -528,7 +593,7 @@ function test_compress_array() {
   expectedArray[1] = new Array("Play","Play","Play");
   expectedArray[2] = new Array("Play","","");
   
-  actualArray = compressArray(testArray);
+  actualArray = ArrayUtils.compressArray(testArray);
   
   Logger.log(GSUnit.assertArrayEquals('Compress array with empty values on bottom and right', expectedArray, actualArray));
   
@@ -541,7 +606,7 @@ function test_compress_array() {
   expectedArray[0] = new Array("CBA","Play","Play");
   expectedArray[1] = new Array("Play","Play","");
   
-  actualArray = compressArray(testArray);
+  actualArray = ArrayUtils.compressArray(testArray);
   
   Logger.log(GSUnit.assertArrayEquals('Compress array with empty values on top and right', expectedArray, actualArray));
 
@@ -553,7 +618,7 @@ function test_compress_array() {
   expectedArray[0] = new Array("CBA","Play");
   expectedArray[1] = new Array("Play","CBA");
   
-  actualArray = compressArray(testArray);
+  actualArray = ArrayUtils.compressArray(testArray);
   
   Logger.log(GSUnit.assertArrayEquals('Compress array with empty values on left', expectedArray, actualArray));
   
@@ -567,7 +632,7 @@ function test_compress_array() {
   expectedArray[1] = new Array("","");
   expectedArray[2] = new Array("Play","CBA");
   
-  actualArray = compressArray(testArray);
+  actualArray = ArrayUtils.compressArray(testArray);
   
   Logger.log(GSUnit.assertArrayEquals('Compress array with empty values in the middle and left', expectedArray, actualArray));
   
@@ -581,66 +646,89 @@ function test_compress_array() {
   expectedArray[1] = new Array("","","");
   expectedArray[2] = new Array("","Play","");
   
-  actualArray = compressArray(testArray);
+  actualArray = ArrayUtils.compressArray(testArray);
   
   Logger.log(GSUnit.assertArrayEquals('Compress array with empty values in all around', expectedArray, actualArray));
 }
 
-function test_clone_array() {
+function test_convert_to_array_of_arrays() {
+  var testArray = new Array("CBA","Play","Play");
+  var expectedArray = new Array();
+  expectedArray[0] = new Array("CBA","Play","Play");
+
+  var actualArray = ArrayUtils.convertToArrayOfArrays(testArray);
+
+  Logger.log(GSUnit.assertArrayEquals('Convert array to array of arrays', expectedArray, actualArray));
+}
+
+function test_convert_to_array() {
+  // [["Play", "Play", "Play", "Play", "CBA"]]
+  var testArray = new Array();
+  testArray[0] = new Array("Play", "Play", "Play", "Play", "CBA");
+  var expectedArray = new Array("Play", "Play", "Play", "Play", "CBA");
+
+  var actualArray = ArrayUtils.convertToArray(testArray);
+
+  Logger.log(GSUnit.assertArrayEquals('Convert to array', expectedArray, actualArray));
+}
+
+function test_copy_array() {
+  var testArray = new Array();
+  testArray[0] = new Array("NA", "Play");
+  testArray[1] = new Array("Play");
+  testArray[2] = new Array("CBA","CBA");
+
+  var expectedArray = new Array();
+  expectedArray[0] = new Array("NA", "Play");
+  expectedArray[1] = new Array("Play");
+  expectedArray[2] = new Array("CBA","CBA");
   
+  var actualArray = new Array();
+  actualArray[0] = new Array("NA", "Play","NA", "Play","NA", "Play");
+  actualArray[1] = new Array("Play","NA","NA","NA");
+  actualArray[2] = new Array("CBA","CBA");
+  actualArray[3] = new Array("NA");
+
+  ArrayUtils.arrayCopy(testArray, actualArray);
+  
+  Logger.log(GSUnit.assertArrayEquals('Copy to larger array', expectedArray, actualArray));
+  
+  actualArray = new Array();
+  
+  ArrayUtils.arrayCopy(testArray, actualArray);
+  
+  Logger.log(GSUnit.assertArrayEquals('Copy to empty array', expectedArray, actualArray));
+  
+  actualArray = new Array();
+  actualArray[0] = new Array(null);
+  actualArray[1] = new Array(null);
+  
+  ArrayUtils.arrayCopy(testArray, actualArray);
+  
+  Logger.log(GSUnit.assertArrayEquals('Copy to smaller array', expectedArray, actualArray));
+}
+
+function test_clone_array() {
   var testArray = new Array();
   testArray[0] = new Array("NA");
   testArray[1] = new Array("Play");
   testArray[2] = new Array("CBA","CBA");
-  
-  delete testArray[1];
 
   var expectedArray = new Array();
   expectedArray[0] = new Array("NA");
-  expectedArray[1] = new Array("CBA","CBA");
+  expectedArray[1] = new Array("Play");
+  expectedArray[2] = new Array("CBA","CBA");
 
-  var actualArray = arrayClone(testArray);
+  var actualArray = ArrayUtils.arrayClone(testArray);
+  
+  delete testArray[1];
+  
+  var expectedTestArray = new Array();
+  expectedTestArray[0] = new Array("NA");
+  expectedTestArray[2] = new Array("CBA","CBA");
+  
+  Logger.log(GSUnit.assertArrayEquals('Confirm original test array changed', expectedTestArray, testArray));
 
-  Logger.log(GSUnit.assertArrayEquals('Rotate 2 by 3 array counter clockwise', expectedArray, actualArray));
-}
-
-function test_isEmptyStr() {
-  Logger.log(GSUnit.assertEquals('No string ', true, isEmptyStr()));
-  Logger.log(GSUnit.assertEquals('Null string ', true, isEmptyStr(null)));
-  Logger.log(GSUnit.assertEquals('Empty string ', true, isEmptyStr("")));
-  Logger.log(GSUnit.assertEquals('Not Empty string ', false, isEmptyStr("test")));
-}
-
-function test_isEmpty() {
-  Logger.log(GSUnit.assertEquals('No string ', true, isEmpty()));
-  Logger.log(GSUnit.assertEquals('Null string ', true, isEmpty(null)));
-  Logger.log(GSUnit.assertEquals('Empty string ', false, isEmpty("")));
-  Logger.log(GSUnit.assertEquals('Not Empty string ', false, isEmpty("test")));
-}
-
-function test_defaultFor() { 
-  var value;
-  var defaultValue = 'test undefined';
-  var expected = 'test undefined';
-   
-  var actual = defaultFor_(value, defaultValue);
-  
-  Logger.log(GSUnit.assertEquals('Undefined', expected, actual));
-  
-  value = '';
-  defaultValue = 'test defined';
-  expected = 'test defined';
-   
-  actual = defaultFor_(value, defaultValue);
-  
-  Logger.log(GSUnit.assertEquals('Defined', expected, actual));
-  
-  value = 'This is a test';
-  defaultValue = 'test text';
-  expected = 'This is a test';
-   
-  actual = defaultFor_(value, defaultValue);
-  
-  Logger.log(GSUnit.assertEquals('This is a test', expected, actual));
+  Logger.log(GSUnit.assertArrayEquals('Cloned array unchanged', expectedArray, actualArray));
 }
 

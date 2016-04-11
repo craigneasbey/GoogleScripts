@@ -1,36 +1,67 @@
 <!DOCTYPE html>
 <html>
     <head>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
         <script>
 /**
- * Generates a list of all Tuesdays for a year in Australian date format DD/MM/YYYY
+ * V1.1.0
+ * Generates a list of all Day of Week for a year in Australian date format DD/MM/YYYY
  * Uses the year parameter if supplied
  * 
- * Example: https://googledrive.com/host/<DOCUMENT_ID>?year=2017
+ * Example: https://googledrive.com/host/<DOCUMENT_ID>?year=2017&dayOfWeek=0
  *
  * Created by craigneasbey (https://github.com/craigneasbey/GoogleScripts/tree/master/Tennis)
  */
-function listTuesdays() {
-    // Removed as year is assigned via amended html script
-    // see function generateDates_() in TennisRoster.gs
+ 
+/**
+ * Creates a HTML list all a day of a week for a year. eg. all Tuesdays in 2016
+ */ 
+function listDays() {
+    // Removed as parameters are assigned via amended html script
+    // see function generateDates_() in Roster.gs
     //var year = getUrlParameter('year');
+    //var dayOfWeek = getUrlParameter('dayOfWeek');
     
     if(!year) {
-      year = 2016
+      year = 2016;
+    }
+    
+    if(!dayOfWeek) {
+      dayOfWeek = 0;
     }
     
     for ( var i = 0; i < 12; i++ ) {
-        var temp = getTuesdays(i, year);
+      var dayList = getDays(i, year, dayOfWeek);
       
-      for ( var j = 0; j < temp.length; j++ ) {
-        //console.log(moment(temp[j]).format("DD MMM YYYY"));
-    
-        jQuery("#list").append(moment(temp[j]).format("DD/MM/YYYY"));
+      for ( var j = 0; j < dayList.length; j++ ) {
+        //console.log(moment(dayList[j]).format("DD MMM YYYY"));
+        jQuery("#list").append(moment(dayList[j]).format("DD/MM/YYYY"));
         jQuery("#list").append("<BR>");
       }
     }
+}
+
+/**
+ * Creates array of all a day of the week for a specified month and year
+ * 
+ * month - 0 to 11 (0 = January, 8 = September)
+ * year - 4 digit year (2016)
+ * dayOfWeek - 0 to 6 (0 = Sunday, 5 = Friday)
+ */
+function getDays(month, year, dayOfWeek) {
+    var d = new Date(year, month, 1);
+    var days = new Array();
+    var offsetDay = 7 + dayOfWeek;
+
+    d.setDate(d.getDate() + (offsetDay - d.getDay()) % 7);
+  
+    while (d.getMonth() === month) {
+        days.push(new Date(d.getTime()));
+        d.setDate(d.getDate() + 7);
+    }
+
+    return days;
 }
 
 // http://stackoverflow.com/questions/19491336/get-url-parameter-jquery
@@ -47,23 +78,10 @@ function getUrlParameter(sParam) {
             return sParameterName[1] === undefined ? true : sParameterName[1];
         }
     }
-};
-
-function getTuesdays(month, year) {
-    var d = new Date(year, month, 1),
-        tuesdays = [];
-
-    d.setDate(d.getDate() + (9 - d.getDay()) % 7)
-    while (d.getMonth() === month) {
-        tuesdays.push(new Date(d.getTime()));
-        d.setDate(d.getDate() + 7);
-    }
-
-    return tuesdays;
 }
         </script>
     </head>
-    <body onload="listTuesdays();">
+    <body onload="listDays();">
     <div>
     <h1>Instructions</h1>
     </div>
@@ -80,6 +98,4 @@ function getTuesdays(month, year) {
         <div id="list"></div>
     </body>
 </html>
-
-
 

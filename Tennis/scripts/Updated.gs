@@ -1,5 +1,5 @@
 /**
- * V1.0.2
+ * V1.1.0
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -8,35 +8,28 @@
  * Created by craigneasbey (https://github.com/craigneasbey/GoogleScripts/tree/master/Tennis)
  */
 
-loadGlobalConfig();
+var Updated = {};
 
 // create local configuration object
-var updatedConfig = {};
-updatedConfig.TESTING = true;
-
-function createTimeDrivenTriggerForUpdated() {
-  // Trigger every UPDATED_CHECK_HOUR hours
-  ScriptApp.newTrigger('triggerUpdated')
-      .timeBased()
-      .everyHours(global.UPDATED_CHECK_HOUR)
-      .create();
-}
+Updated.Config = {};
+Updated.Config.TESTING = true;
+Logger.log("Updated configuration loaded");
 
 /**
- * Run from a installed trigger to notify players if the sheet has updated
+ * Notify members if the sheet has updated
  */
-function triggerUpdated() {
+Updated.checkUpdated = function() {
   var now = new Date();
-  var result = checkUpdatedNotificationRequired_(now);
+  var result = Updated.checkUpdatedNotificationRequired(now);
   
   if(result) {
-    var subject = global.UPDATED_SUBJECT;
-    var message = global.UPDATED_MESSAGE;
+    var subject = Global().UPDATED_SUBJECT;
+    var message = Global().UPDATED_MESSAGE;
     
-    emailPlayers_(subject, message);
+    Notification.emailMembers(subject, message);
     
     // reset updated
-    setUpdated_('');
+    Updated.setUpdated('');
   }
   
   return result;
@@ -45,15 +38,15 @@ function triggerUpdated() {
 /**
  * Triggered to check if a updated notification is required
  */
-function checkUpdatedNotificationRequired_(now) {
-  if(isUpdated_()) {
-    var currentValue = getUpdated_();
+Updated.checkUpdatedNotificationRequired = function(now) {
+  if(Updated.getUpdated()) {
+    var currentValue = Updated.getUpdated();
     
     // convert date stamp to Date
-    var updatedDate = parseDate(currentValue);
+    var updatedDate = DateUtils.parseDate(currentValue);
     
     // if the updated date is older than 1 day, return true
-    if(updatedDate < now - ONE_DAY_MS) {
+    if(updatedDate < now - DateUtils.ONE_DAY_MS) {
       return true;
     }
   }
@@ -62,45 +55,51 @@ function checkUpdatedNotificationRequired_(now) {
 }
 
 /**
+ * Get the Updated spreadsheet sheet
+ */
+Updated.getUpdatedSheet = function() {
+  var currentSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  
+  return currentSpreadsheet.getSheetByName(Global().UPDATED_SHEET_NAME);
+}
+
+/**
  * Update value on hidden sheet 'Updated'
  */
-function setUpdated_(newValue) { 
-  var currentSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  var updatedSheet = currentSpreadsheet.getSheetByName(global.UPDATED_SHEET_NAME);
+Updated.setUpdated = function(newValue) { 
+  var updatedSheet = Updated.getUpdatedSheet();
   
-  checkUpdatedSheetExists();
+  Updated.checkUpdatedSheetExists();
   
   if(updatedSheet) {
     // set first cell
-    updatedSheet.getRange(global.UPDATED_UPDATED_ROW,1,1,1).setValue(newValue);
+    updatedSheet.getRange(Global().UPDATED_UPDATED_ROW,1,1,1).setValue(newValue);
   }
 }
 
 /**
  * Check if the Updated sheet exists, if not insert one
  */
-function checkUpdatedSheetExists() {
-  var currentSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  var updatedSheet = currentSpreadsheet.getSheetByName(global.UPDATED_SHEET_NAME);
+Updated.checkUpdatedSheetExists = function() {
+  var updatedSheet = Updated.getUpdatedSheet();
 
     // Insert sheet if it does not exist
     if (updatedSheet === null) {
-      updatedSheet = currentSpreadsheet.insertSheet(global.UPDATED_SHEET_NAME);
+      updatedSheet = currentSpreadsheet.insertSheet(Global().UPDATED_SHEET_NAME);
     }
 }
 
 /**
  * Get value on hidden sheet 'Updated'
  */
-function getUpdated_() { 
-  var currentSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  var updatedSheet = currentSpreadsheet.getSheetByName(global.UPDATED_SHEET_NAME);
+Updated.getUpdated = function() {
+  var updatedSheet = Updated.getUpdatedSheet();
   
   var currentValue;
   
   if(updatedSheet) {
     // get first cell
-    currentValue = updatedSheet.getRange(global.UPDATED_UPDATED_ROW,1,1,1).getValue();
+    currentValue = updatedSheet.getRange(Global().UPDATED_UPDATED_ROW,1,1,1).getValue();
   }
   
   return currentValue;
@@ -109,8 +108,8 @@ function getUpdated_() {
 /**
  * Check if the value on hidden sheet 'Updated' exists
  */
-function isUpdated_() { 
-  var currentValue = getUpdated_();
+Updated.isUpdated = function() { 
+  var currentValue = Updated.getUpdated();
   
   if(currentValue) {
     return !isEmptyStr(currentValue);
@@ -123,17 +122,17 @@ function isUpdated_() {
  * Checks that the Roster sheet has been edited and sets the updated value if it 
  * has not already been set
  */
-function checkUpdated(element) {
-  if(element && element.range && element.range.getSheet().getName() === global.ROSTER_SHEET_NAME) {  
-    if(!isUpdated_()) {
+Updated.checkRosterUpdated = function(element) {
+  if(element && element.range && element.range.getSheet().getName() === Global().ROSTER_SHEET_NAME) {  
+    if(!Updated.isUpdated()) {
       // get date stamp
       var now = new Date();
       // update updated cell
-      setUpdated_(now.toString());
+      Updated.setUpdated(now.toString());
     }
   }
   
-  return getUpdated_();
+  return Updated.getUpdated();
 }
 
 
@@ -144,40 +143,40 @@ function test_manual_updated_suite() {
   test_setUpdated();
   test_isUpdated();
   test_checkUpdatedNotificationRequired();
-  test_checkUpdated();
+  test_checkRosterUpdated();
   
-  notificationConfig.TESTING = true;
+  Notification.Config.TESTING = true;
   
-  test_triggerUpdated_NoEmail();
-  test_triggerUpdated_Email();
+  test_checkUpdated_NoEmail();
+  test_checkUpdated_Email();
   
-  notificationConfig.TESTING = false;
+  Notification.Config.TESTING = false;
 }
 
 function test_setUpdated() {
   var expected = 'this is a test';
   
-  setUpdated_(expected);
-  var actual = getUpdated_();
+  Updated.setUpdated(expected);
+  var actual = Updated.getUpdated();
 
   GSUnit.assertEquals('Set Updated', expected, actual);
   
   // reset cell
-  setUpdated_('');
+  Updated.setUpdated('');
 }
 
 function test_isUpdated() {
   var testStr = 'This is a test';
   
-  setUpdated_(testStr);
-  var actual = isUpdated_();
+  Updated.setUpdated(testStr);
+  var actual = Updated.isUpdated();
 
   GSUnit.assertTrue('This is a test', actual);
   
   // reset cell
-  setUpdated_('');
+  Updated.setUpdated('');
   
-  actual = isUpdated_();
+  actual = Updated.isUpdated();
 
   GSUnit.assertFalse('Empty updated', actual);
 }
@@ -185,47 +184,47 @@ function test_isUpdated() {
 function test_checkUpdatedNotificationRequired() {
   var now = new Date();
   var testDate = new Date();
-  setUpdated_(testDate.toString());
+  Updated.setUpdated(testDate.toString());
   
-  var actual = checkUpdatedNotificationRequired_(now);
+  var actual = Updated.checkUpdatedNotificationRequired(now);
   
   GSUnit.assertFalse('Within a date', actual);
 
-  testDate = new Date() - (ONE_DAY_MS + ONE_HOUR_MS);
-  setUpdated_(testDate.toString());
+  testDate = new Date() - (DateUtils.ONE_DAY_MS + DateUtils.ONE_HOUR_MS);
+  Updated.setUpdated(testDate.toString());
   
-  actual = checkUpdatedNotificationRequired_(now);
+  actual = Updated.checkUpdatedNotificationRequired(now);
 
   GSUnit.assertTrue('Older than a day', actual);
   
-  setUpdated_('');
+  Updated.setUpdated('');
   
-  actual = checkUpdatedNotificationRequired_(now);
+  actual = Updated.checkUpdatedNotificationRequired(now);
 
   GSUnit.assertFalse('Reset cell', actual);
 }
 
-function test_checkUpdated() {
+function test_checkRosterUpdated() {
   var expected = (new Date()).toString();
   
-  var actual = checkUpdated(null);
+  var actual = Updated.checkRosterUpdated(null);
 
   GSUnit.assertNotEquals('Check updated', expected, actual);
 }
 
-function test_triggerUpdated_NoEmail() {
+function test_checkUpdated_NoEmail() {
   var testDate = new Date();
   
-  setUpdated_(testDate.toString());
+  Updated.setUpdated(testDate.toString());
   
-  GSUnit.assertFalse('No email trigger updated', triggerUpdated());
+  GSUnit.assertFalse('No email trigger updated', Updated.checkUpdated());
 }
 
-function test_triggerUpdated_Email() {
-  var testDate = new Date() - (ONE_DAY_MS + ONE_HOUR_MS + ONE_DAY_MS);
+function test_checkUpdated_Email() {
+  var testDate = new Date() - (DateUtils.ONE_DAY_MS + DateUtils.ONE_HOUR_MS + DateUtils.ONE_DAY_MS);
   
-  setUpdated_(testDate.toString());
+  Updated.setUpdated(testDate.toString());
   
-  GSUnit.assertTrue('Email trigger updated', triggerUpdated());
+  GSUnit.assertTrue('Email trigger updated', Updated.checkUpdated());
 }
 

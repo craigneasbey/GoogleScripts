@@ -1,5 +1,5 @@
 /**
- * V1.0.6
+ * V1.1.0
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -8,37 +8,38 @@
  * Created by craigneasbey (https://github.com/craigneasbey/GoogleScripts/tree/master/Tennis)
  */
 
-loadGlobalConfig();
+var DateUtils = {};
 
 // create local configuration object
-var datesConfig = {};
-datesConfig.TESTING = false;
+DateUtils.Config = {};
+DateUtils.Config.TESTING = false;
+Logger.log("Date Utilities configuration loaded");
 
-var ONE_DAY_MS = 1000 * 60 * 60 * 24;
-var ONE_HOUR_MS = 1000 * 60 * 60;
-var ONE_MINUTE_MS = 1000 * 60;
+DateUtils.ONE_DAY_MS = 1000 * 60 * 60 * 24;
+DateUtils.ONE_HOUR_MS = 1000 * 60 * 60;
+DateUtils.ONE_MINUTE_MS = 1000 * 60;
 
-function createLocalDate(year, month, day, hour, minute, second) {
+DateUtils.createLocalDate = function(year, month, day, hour, minute, second) {
   return new Date(year, month - 1, day, hour, minute, second);
 }
 
-function createUTCDate(year, month, day, hour, minute, second) {
+DateUtils.createUTCDate = function(year, month, day, hour, minute, second) {
   var d = new Date(year, month - 1, day, hour, minute, second);
   
   // remove timezone offset
-  d.setTime(d.getTime() - d.getTimezoneOffset() * ONE_MINUTE_MS);
+  d.setTime(d.getTime() - d.getTimezoneOffset() * DateUtils.ONE_MINUTE_MS);
   
   return d;
 }
 
-function parseDate(str) {
+DateUtils.parseDate = function(str) {
   return new Date(str);
 }
 
 /**
  * Compare dates, if equal return 0, greater than 1, less than -1
  */
-function compareDates(d1, d2) {
+DateUtils.compareDates = function(d1, d2) {
   if(d1.getTime() === d2.getTime()) {
     return 0;
   } else if (d1.getTime() > d2.getTime()) {
@@ -51,28 +52,28 @@ function compareDates(d1, d2) {
 /**
  * Compares if dates are equal within a millisecond tolerance
  */
-function equalDatesWithinTolerance(n1, n2, toleranceMs) {
-  return equalWithinTolerance(n1.getTime(), n2.getTime(), toleranceMs);
+DateUtils.equalDatesWithinTolerance = function(n1, n2, toleranceMs) {
+  return DateUtils.equalWithinTolerance(n1.getTime(), n2.getTime(), toleranceMs);
 }
 
 /**
  * Compares dates within a millisecond tolerance
  */
-function compareDatesWithinTolerance(n1, n2, toleranceMs) {
-  return compareWithinTolerance(n1.getTime(), n2.getTime(), toleranceMs);
+DateUtils.compareDatesWithinTolerance = function(n1, n2, toleranceMs) {
+  return DateUtils.compareWithinTolerance(n1.getTime(), n2.getTime(), toleranceMs);
 }
 
 /**
  * Compares if numbers are equal within a tolerance
  */
-function equalWithinTolerance(n1, n2, tolerance) {
-  return compareWithinTolerance(n1, n2, tolerance) === 0;
+DateUtils.equalWithinTolerance = function(n1, n2, tolerance) {
+  return DateUtils.compareWithinTolerance(n1, n2, tolerance) === 0;
 }
 
 /**
  * Compares numbers within a tolerance
  */
-function compareWithinTolerance(n1, n2, tolerance) {
+DateUtils.compareWithinTolerance = function(n1, n2, tolerance) {
   if(n1 === n2) {
     return 0;
   } else if(n1 > n2) {
@@ -90,6 +91,44 @@ function compareWithinTolerance(n1, n2, tolerance) {
   return -1;
 }
 
+/**
+ * Creates array of all a day of the week for a specified month and year
+ * 
+ * month - 0 to 11 (0 = January, 8 = September)
+ * year - 4 digit year (2016)
+ * dayOfWeek - 0 to 6 (0 = Sunday, 5 = Friday)
+ */
+DateUtils.getDays = function(month, year, dayOfWeek) {
+    var d = new Date(year, month, 1);
+    var days = new Array();
+    var offsetDay = 7 + dayOfWeek;
+
+    d.setDate(d.getDate() + (offsetDay - d.getDay()) % 7);
+  
+    while (d.getMonth() === month) {
+        days.push(new Date(d.getTime()));
+        d.setDate(d.getDate() + 7);
+    }
+
+    return days;
+}
+
+/**
+ * Test utility to convert array of dates to strings since
+ * asserting two arrays of dates fails
+ */
+DateUtils.convertToStamps = function(input) {
+  if(Array.isArray(input)) {
+    for(var i = 0; i < input.length; i++) {
+      if(input[i] instanceof Date) {
+        input[i] = input[i].toString();
+      }
+    }
+  }
+  
+  return input;
+}
+
 
 /**
  * Tests
@@ -103,13 +142,14 @@ function test_date_suite() {
   test_equalDatesWithinTolerance();
   test_equalWithinTolerance();
   test_compareWithinTolerance();
+  test_day_of_week();
 }
 
 
 function test_createLocalDate() {
   var expected = 1451307600000; // 29/12/2015 00:00:00 local
   
-  var actual = createLocalDate(2015, 12, 29, 0, 0, 0);
+  var actual = DateUtils.createLocalDate(2015, 12, 29, 0, 0, 0);
   
   GSUnit.assertEquals('Equal local date', expected, actual.getTime());
 }
@@ -117,7 +157,7 @@ function test_createLocalDate() {
 function test_createUTCDate() {
   var expected = new Date(Date.UTC(2015, 11, 29, 0, 0, 0));
   
-  var actual = createUTCDate(2015, 12, 29, 0, 0, 0);
+  var actual = DateUtils.createUTCDate(2015, 12, 29, 0, 0, 0);
   
   GSUnit.assertEquals('Equal UTC date', expected.getTime(), actual.getTime());
 }
@@ -125,9 +165,9 @@ function test_createUTCDate() {
 function test_parseDate() {
   var testDateStr = '29 Dec 2015';
   
-  var expected = createLocalDate(2015, 12, 29, 0, 0, 0);
+  var expected = DateUtils.createLocalDate(2015, 12, 29, 0, 0, 0);
 
-  var actual = parseDate(testDateStr);
+  var actual = DateUtils.parseDate(testDateStr);
   
   GSUnit.assert('Parse date', actual.getTime() === expected.getTime());
 }
@@ -137,64 +177,64 @@ function test_compareDates() {
   var now = new Date();
   
   var expected = 0;
-  var actual = compareDates(testDate, now);
+  var actual = DateUtils.compareDates(testDate, now);
   
   GSUnit.assert('Equal dates', actual === expected);
   
-  testDate.setTime(testDate.getTime() + ONE_HOUR_MS);
+  testDate.setTime(testDate.getTime() + DateUtils.ONE_HOUR_MS);
   
   expected = 1;
-  actual = compareDates(testDate, now);
+  actual = DateUtils.compareDates(testDate, now);
   
   GSUnit.assert('Greater than date', actual === expected);
 
-  testDate.setTime(testDate.getTime() - ONE_HOUR_MS - ONE_HOUR_MS);
+  testDate.setTime(testDate.getTime() - DateUtils.ONE_HOUR_MS - DateUtils.ONE_HOUR_MS);
   
   expected = -1;
-  actual = compareDates(testDate, now);
+  actual = DateUtils.compareDates(testDate, now);
   
   GSUnit.assert('Less than date', actual === expected);
 }
 
 function test_compareDatesWithinTolerance() {
-  var testData1 = createLocalDate(2015, 12, 28, 0, 0, 0);
-  var testData2 = createLocalDate(2015, 12, 30, 0, 0, 0);
+  var testData1 = DateUtils.createLocalDate(2015, 12, 28, 0, 0, 0);
+  var testData2 = DateUtils.createLocalDate(2015, 12, 30, 0, 0, 0);
   
   var expected = 0;
 
-  var actual = compareDatesWithinTolerance(testData1, testData2, ONE_DAY_MS + ONE_DAY_MS);
+  var actual = DateUtils.compareDatesWithinTolerance(testData1, testData2, DateUtils.ONE_DAY_MS + DateUtils.ONE_DAY_MS);
   
   GSUnit.assertEquals('Compare dates within 2 days', expected, actual);
   
   expected = -1;
 
-  actual = compareDatesWithinTolerance(testData1, testData2, ONE_MINUTE_MS);
+  actual = DateUtils.compareDatesWithinTolerance(testData1, testData2, DateUtils.ONE_MINUTE_MS);
   
   GSUnit.assertEquals('Compare dates not within 1 minute', expected, actual);
   
   expected = 0;
-  testData2 = createLocalDate(2015, 12, 28, 11, 0, 0);
+  testData2 = DateUtils.createLocalDate(2015, 12, 28, 11, 0, 0);
   
-  actual = compareDatesWithinTolerance(testData1, testData2, ONE_DAY_MS);
+  actual = DateUtils.compareDatesWithinTolerance(testData1, testData2, DateUtils.ONE_DAY_MS);
   
   GSUnit.assertEquals('Compare dates within 1 day', expected, actual);
 }
 
 function test_equalDatesWithinTolerance() {
-  var testData1 = createLocalDate(2015, 12, 28, 0, 0, 0);
-  var testData2 = createLocalDate(2015, 12, 30, 0, 0, 0);
+  var testData1 = DateUtils.createLocalDate(2015, 12, 28, 0, 0, 0);
+  var testData2 = DateUtils.createLocalDate(2015, 12, 30, 0, 0, 0);
 
-  var actual = equalDatesWithinTolerance(testData1, testData2, ONE_DAY_MS + ONE_DAY_MS);
+  var actual = DateUtils.equalDatesWithinTolerance(testData1, testData2, DateUtils.ONE_DAY_MS + DateUtils.ONE_DAY_MS);
   
   GSUnit.assertTrue('Dates equal within 2 days', actual);
 
-  actual = equalDatesWithinTolerance(testData1, testData2, ONE_MINUTE_MS);
+  actual = DateUtils.equalDatesWithinTolerance(testData1, testData2, DateUtils.ONE_MINUTE_MS);
   
   GSUnit.assertFalse('Dates not equal within 1 minute', actual);
   
-  testData2 = createLocalDate(2015, 12, 28, 11, 0, 0);
+  testData2 = DateUtils.createLocalDate(2015, 12, 28, 11, 0, 0);
   
-  actual = equalDatesWithinTolerance(testData1, testData2, ONE_DAY_MS);
+  actual = DateUtils.equalDatesWithinTolerance(testData1, testData2, DateUtils.ONE_DAY_MS);
   
   GSUnit.assertTrue('Dates equal within 1 day', actual);
 }
@@ -204,12 +244,12 @@ function test_equalWithinTolerance() {
   var testData2 = 5;
   
   var expected = false;
-  var actual = equalWithinTolerance(testData1,testData2, 1);
+  var actual = DateUtils.equalWithinTolerance(testData1,testData2, 1);
   
   GSUnit.assert('Equal 3 = 5, Tol 1', actual === expected);
 
   expected = true;
-  actual = equalWithinTolerance(testData1,testData2, 2);
+  actual = DateUtils.equalWithinTolerance(testData1,testData2, 2);
   
   GSUnit.assert('Equal 3 = 5, Tol 2', actual === expected);
   
@@ -217,12 +257,12 @@ function test_equalWithinTolerance() {
   testData2 = 71;
   
   expected = true;
-  actual = equalWithinTolerance(testData1,testData2, 30);
+  actual = DateUtils.equalWithinTolerance(testData1,testData2, 30);
   
   GSUnit.assert('Equal 100 = 71, Tol 30', actual === expected);
 
   expected = false;
-  actual = equalWithinTolerance(testData1,testData2, 5);
+  actual = DateUtils.equalWithinTolerance(testData1,testData2, 5);
   
   GSUnit.assert('Equal 100 = 71, Tol 5', actual === expected);
 }
@@ -232,12 +272,12 @@ function test_compareWithinTolerance() {
   var testData2 = 5;
   
   var expected = -1;
-  var actual = compareWithinTolerance(testData1,testData2, 1);
+  var actual = DateUtils.compareWithinTolerance(testData1,testData2, 1);
   
   GSUnit.assert('Compare 3 = 5, Tol 1', actual === expected);
 
   expected = 0;
-  actual = compareWithinTolerance(testData1,testData2, 2);
+  actual = DateUtils.compareWithinTolerance(testData1,testData2, 2);
   
   GSUnit.assert('Compare 3 = 5, Tol 2', actual === expected);
   
@@ -245,14 +285,97 @@ function test_compareWithinTolerance() {
   testData2 = 71;
   
   expected = 0;
-  actual = compareWithinTolerance(testData1,testData2, 30);
+  actual = DateUtils.compareWithinTolerance(testData1,testData2, 30);
   
   GSUnit.assert('Compare 100 = 71, Tol 30', actual === expected);
 
   expected = 1;
-  actual = compareWithinTolerance(testData1,testData2, 5);
+  actual = DateUtils.compareWithinTolerance(testData1,testData2, 5);
   
   GSUnit.assert('Compare 100 = 71, Tol 5', actual === expected);
 }
 
+function test_day_of_week() {
+  var year = 2016;
+  var month = 3;
+  
+  var dayOfWeek = 0;
+  var expectedArray = new Array();
+  expectedArray[0] = DateUtils.createLocalDate(2016, 4, 3, 0, 0, 0);
+  expectedArray[1] = DateUtils.createLocalDate(2016, 4, 10, 0, 0, 0);
+  expectedArray[2] = DateUtils.createLocalDate(2016, 4, 17, 0, 0, 0);
+  expectedArray[3] = DateUtils.createLocalDate(2016, 4, 24, 0, 0, 0);
+  
+  var actualArray = DateUtils.getDays(month, year, dayOfWeek);
+  
+  Logger.log(GSUnit.assertArrayEquals('Sundays in April 2016', DateUtils.convertToStamps(expectedArray), DateUtils.convertToStamps(actualArray)));
+  
+  dayOfWeek = 1;
+  expectedArray = new Array();
+  expectedArray[0] = DateUtils.createLocalDate(2016, 4, 4, 0, 0, 0);
+  expectedArray[1] = DateUtils.createLocalDate(2016, 4, 11, 0, 0, 0);
+  expectedArray[2] = DateUtils.createLocalDate(2016, 4, 18, 0, 0, 0);
+  expectedArray[3] = DateUtils.createLocalDate(2016, 4, 25, 0, 0, 0);
+  
+  actualArray = DateUtils.getDays(month, year, dayOfWeek);
+  
+  Logger.log(GSUnit.assertArrayEquals('Mondays in April 2016', DateUtils.convertToStamps(expectedArray), DateUtils.convertToStamps(actualArray)));
+  
+  dayOfWeek = 2;
+  expectedArray = new Array();
+  expectedArray[0] = DateUtils.createLocalDate(2016, 4, 5, 0, 0, 0);
+  expectedArray[1] = DateUtils.createLocalDate(2016, 4, 12, 0, 0, 0);
+  expectedArray[2] = DateUtils.createLocalDate(2016, 4, 19, 0, 0, 0);
+  expectedArray[3] = DateUtils.createLocalDate(2016, 4, 26, 0, 0, 0);
+  
+  actualArray = DateUtils.getDays(month, year, dayOfWeek);
+  
+  Logger.log(GSUnit.assertArrayEquals('Tuesdays in April 2016', DateUtils.convertToStamps(expectedArray), DateUtils.convertToStamps(actualArray)));
+  
+  dayOfWeek = 3;
+  expectedArray = new Array();
+  expectedArray[0] = DateUtils.createLocalDate(2016, 4, 6, 0, 0, 0);
+  expectedArray[1] = DateUtils.createLocalDate(2016, 4, 13, 0, 0, 0);
+  expectedArray[2] = DateUtils.createLocalDate(2016, 4, 20, 0, 0, 0);
+  expectedArray[3] = DateUtils.createLocalDate(2016, 4, 27, 0, 0, 0);
+  
+  actualArray = DateUtils.getDays(month, year, dayOfWeek);
+  
+  Logger.log(GSUnit.assertArrayEquals('Wednesdays in April 2016', DateUtils.convertToStamps(expectedArray), DateUtils.convertToStamps(actualArray)));
+  
+  dayOfWeek = 4;
+  expectedArray = new Array();
+  expectedArray[0] = DateUtils.createLocalDate(2016, 4, 7, 0, 0, 0);
+  expectedArray[1] = DateUtils.createLocalDate(2016, 4, 14, 0, 0, 0);
+  expectedArray[2] = DateUtils.createLocalDate(2016, 4, 21, 0, 0, 0);
+  expectedArray[3] = DateUtils.createLocalDate(2016, 4, 28, 0, 0, 0);
+  
+  actualArray = DateUtils.getDays(month, year, dayOfWeek);
+  
+  Logger.log(GSUnit.assertArrayEquals('Thursdays in April 2016', DateUtils.convertToStamps(expectedArray), DateUtils.convertToStamps(actualArray)));
+  
+  dayOfWeek = 5;
+  expectedArray = new Array();
+  expectedArray[0] = DateUtils.createLocalDate(2016, 4, 1, 0, 0, 0);
+  expectedArray[1] = DateUtils.createLocalDate(2016, 4, 8, 0, 0, 0);
+  expectedArray[2] = DateUtils.createLocalDate(2016, 4, 15, 0, 0, 0);
+  expectedArray[3] = DateUtils.createLocalDate(2016, 4, 22, 0, 0, 0);
+  expectedArray[4] = DateUtils.createLocalDate(2016, 4, 29, 0, 0, 0);
+  
+  actualArray = DateUtils.getDays(month, year, dayOfWeek);
+  
+  Logger.log(GSUnit.assertArrayEquals('Fridays in April 2016', DateUtils.convertToStamps(expectedArray), DateUtils.convertToStamps(actualArray)));
+  
+  dayOfWeek = 6;
+  expectedArray = new Array();
+  expectedArray[0] = DateUtils.createLocalDate(2016, 4, 2, 0, 0, 0);
+  expectedArray[1] = DateUtils.createLocalDate(2016, 4, 9, 0, 0, 0);
+  expectedArray[2] = DateUtils.createLocalDate(2016, 4, 16, 0, 0, 0);
+  expectedArray[3] = DateUtils.createLocalDate(2016, 4, 23, 0, 0, 0);
+  expectedArray[4] = DateUtils.createLocalDate(2016, 4, 30, 0, 0, 0);
+  
+  actualArray = DateUtils.getDays(month, year, dayOfWeek);
+  
+  Logger.log(GSUnit.assertArrayEquals('Saturdays in April 2016', DateUtils.convertToStamps(expectedArray), DateUtils.convertToStamps(actualArray)));
+}
 
