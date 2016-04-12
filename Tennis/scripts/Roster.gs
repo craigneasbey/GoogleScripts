@@ -1,5 +1,5 @@
 /**
- * V1.1.0
+ * V1.1.1
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -48,59 +48,71 @@ Roster.allocateMembers = function() {
   Logger.log("Roster.allocateMembers function called");
   var currentSheet = SpreadsheetApp.getActiveSheet();
   var currentRange = currentSheet.getActiveRange();
-  
-  var promptTitle = '';
-  var promptText = '';
+  var currentRangeDescription = currentRange.getA1Notation();
+  var userConfiguration = {};
+  userConfiguration.maxWeeksRostered = Global().DEFAULT_MAX_WEEKS_ROSTERED;
+  userConfiguration.maxWeeksRest = Global().DEFAULT_MAX_WEEKS_REST;
   var result = false;
-  
-  // verify range
-  if(!Roster.Config.TESTING) {
-    promptTitle = 'Roster Range Selected', 
-    promptText = 'The current selected range is: ' + currentRange.getA1Notation();
-    promptText += '.\n\n Are you sure you want to continue allocating rostered members in that range?', 
-    
-    result = GUIUtils.openCheckDialog(promptTitle, promptText);
-  } else {
+ 
+  if(Roster.Config.TESTING) {
     result = true;
+  } else {
+    result = Roster.getUserAllocationConfiguration(userConfiguration, currentRangeDescription);
   }
-  
+    
   if(result) {
-    Logger.log("current range: " + JSON.stringify(currentRange));
-
-    var maxWeeksRostered = Global().DEFAULT_MAX_WEEKS_ROSTERED;
-    var maxWeeksRest = Global().DEFAULT_MAX_WEEKS_REST;
-    
-    // get configuration from user
-    if(!Roster.Config.TESTING) {
-      promptTitle = 'Allocation Configuration';
-      promptText = 'Enter maximum consecutive weeks rostered (default ' + Global().DEFAULT_MAX_WEEKS_ROSTERED + '):';
-      maxWeeksRostered = GUIUtils.openEntryDialog(promptTitle, promptText);
-      
-      if(maxWeeksRostered === GUIUtils.CANCEL) {
-        return;
-      }
-      
-      promptText = 'Enter maximum consecutive weeks resting (default ' + Global().DEFAULT_MAX_WEEKS_REST + '):';
-      maxWeeksRest = GUIUtils.openEntryDialog(promptTitle, promptText);
-      
-      if(maxWeeksRest === GUIUtils.CANCEL) {
-        return;
-      }
-    }
-    
-    maxWeeksRostered = defaultFor(maxWeeksRostered, Global().DEFAULT_MAX_WEEKS_ROSTERED);
-    maxWeeksRest = defaultFor(maxWeeksRest, Global().DEFAULT_MAX_WEEKS_REST);
+    // check user input
+    userConfiguration.maxWeeksRostered = defaultFor(userConfiguration.maxWeeksRostered, Global().DEFAULT_MAX_WEEKS_ROSTERED);
+    userConfiguration.maxWeeksRest = defaultFor(userConfiguration.maxWeeksRest, Global().DEFAULT_MAX_WEEKS_REST);
     
     // get the selected history
-    var historyArray = Roster.getMembersHistory(maxWeeksRostered, maxWeeksRest, currentRange, currentSheet);
+    var historyArray = Roster.getMembersHistory(userConfiguration.maxWeeksRostered, userConfiguration.maxWeeksRest, currentRange, currentSheet);
     
     // allocate roster for selected members
-    var save = Roster.allocateSelectedMembers(maxWeeksRostered, maxWeeksRest, historyArray, currentRange, currentSheet);
+    var save = Roster.allocateSelectedMembers(userConfiguration.maxWeeksRostered, userConfiguration.maxWeeksRest, historyArray, currentRange, currentSheet);
     
     if(save) {
       SpreadsheetApp.flush();
     }
   }
+}
+
+/**
+ * Prompt the user for roster allocation configuration values
+ */
+Roster.getUserAllocationConfiguration = function(userConfiguration, currentRangeDescription) {
+  var promptTitle = '';
+  var promptText = '';
+  var result = false;
+  
+  // verify range
+  promptTitle = 'Roster Range Selected';
+  promptText = 'The current selected range is: ' + currentRangeDescription;
+  promptText += '.\n\n Are you sure you want to continue allocating rostered members in that range?', 
+    
+  result = GUIUtils.openCheckDialog(promptTitle, promptText);
+  
+  if(result) {
+    Logger.log("current range: " + JSON.stringify(currentRangeDescription));
+    
+    // get configuration from user
+    promptTitle = 'Allocation Configuration';
+    promptText = 'Enter maximum consecutive weeks rostered (default ' + userConfiguration.maxWeeksRostered + '):';
+    userConfiguration.maxWeeksRostered = GUIUtils.openEntryDialog(promptTitle, promptText);
+    
+    if(userConfiguration.maxWeeksRostered === GUIUtils.CANCEL) {
+      return false;
+    }
+    
+    promptText = 'Enter maximum consecutive weeks resting (default ' + userConfiguration.maxWeeksRest + '):';
+    userConfiguration.maxWeeksRest = GUIUtils.openEntryDialog(promptTitle, promptText);
+    
+    if(userConfiguration.maxWeeksRest === GUIUtils.CANCEL) {
+      return false;
+    }
+  }
+  
+  return result;
 }
 
 /*
