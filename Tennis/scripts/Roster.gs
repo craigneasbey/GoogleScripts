@@ -1,5 +1,5 @@
 /**
- * V1.1.1
+ * V1.2.0
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -66,12 +66,16 @@ Roster.allocateMembers = function() {
     userConfiguration.maxWeeksRest = defaultFor(userConfiguration.maxWeeksRest, Global().DEFAULT_MAX_WEEKS_REST);
     
     // get the selected history
-    var historyArray = Roster.getMembersHistory(userConfiguration.maxWeeksRostered, userConfiguration.maxWeeksRest, currentRange, currentSheet);
+    var historyArray = Roster.getSelectHistory(userConfiguration.maxWeeksRostered, userConfiguration.maxWeeksRest, currentRange, currentSheet);
+    
+    // get the selected roster weeks
+    var weeksArray = currentRange.getValues();
     
     // allocate roster for selected members
-    var save = Roster.allocateSelectedMembers(userConfiguration.maxWeeksRostered, userConfiguration.maxWeeksRest, historyArray, currentRange, currentSheet);
-    
+    var save = AllocateMembers.allocateSelectedMembers(weeksArray, historyArray, userConfiguration.maxWeeksRostered, userConfiguration.maxWeeksRest);
+        
     if(save) {
+      currentRange.setValues(weeksArray);
       SpreadsheetApp.flush();
     }
   }
@@ -118,51 +122,14 @@ Roster.getUserAllocationConfiguration = function(userConfiguration, currentRange
 /*
  * Get rostered/rest history from sheet
  */
-Roster.getMembersHistory = function(maxWeeksRostered, maxWeeksRest, currentRange, currentSheet) {
+Roster.getSelectHistory = function(maxWeeksRostered, maxWeeksRest, currentRange, currentSheet) {
   var historyLength = maxWeeksRostered > maxWeeksRest ? maxWeeksRostered : maxWeeksRest;
   var currentRowIndex = currentRange.getRow();
   var currentColumnIndex = currentRange.getColumn();
+  var currentNumOfColumns = currentRange.getNumColumns();
   
-  var historyRows = currentSheet.getRange(currentRowIndex - historyLength, currentColumnIndex, historyLength, currentRange.getNumColumns());
+  var historyRows = currentSheet.getRange(currentRowIndex - historyLength, currentColumnIndex, historyLength, currentNumOfColumns);
   var historyArray = historyRows.getValues();
-  
-  return historyArray;
-}
-
-/*
- * Allocate members for selected roster
- */
-Roster.allocateSelectedMembers = function(maxWeeksRostered, maxWeeksRest, historyArray, currentRange, currentSheet)
-{
-  var result = false;
-  var currentColumnIndex = currentRange.getColumn();
-  var currentWidth = currentRange.getNumColumns();
-  var fillTeam = { "start" : 0 }; // move the start to the first member when looking for another available member to roster
-  
-  // for each row(week) of the current range
-  for(var i=currentRange.getRow(); i < currentRange.getRow() + currentRange.getNumRows(); i++) {
-    var numOfRows = 1;
-    var currentRow = currentSheet.getRange(i, currentColumnIndex, numOfRows, currentWidth);
-    var currentRowArrayArray = currentRow.getValues();
-    
-    var weekArray = AllocateMembers.allocateMembersForWeek(currentRowArrayArray[0], historyArray, maxWeeksRostered, maxWeeksRest, fillTeam);
-    
-    currentRow.setValues([weekArray]);
-    
-    historyArray = Roster.progressMembersHistory(historyArray, weekArray);
-    
-    result = true;
-  }
-  
-  return result;
-}
-
-/**
- * Move history array down the sheet, remove the oldest row, add the latest row
- */
-Roster.progressMembersHistory = function(historyArray, newRow) {  
-  historyArray.shift(); // remove top
-  historyArray.push(newRow); // add new row to bottom
   
   return historyArray;
 }
@@ -210,7 +177,7 @@ Roster.removePastWeeks = function() {
   }
 
   // remove history week rows
-  var save = Roster.removeHistory_(historyLength);
+  var save = Roster.removeHistory(historyLength);
     
   if(save) {
     SpreadsheetApp.flush();
@@ -223,9 +190,8 @@ Roster.removePastWeeks = function() {
 Roster.removeHistory = function(retainHistoryLength) {
   var currentSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   var rosterSheet = currentSpreadsheet.getSheetByName(Roster.Config.ROSTER_SHEET_NAME);
-  //Logger.log('Roster.Config.ROSTER_SHEET_NAME: ' + Roster.Config.ROSTER_SHEET_NAME);
   
-  // remove all rows between first week index and current week - retainHistoryLength
+  // remove all rows between first week index and current week minus retain history length
   var weekRowIndex = Refresh.findCurrentWeekIndexOnSheet(rosterSheet);
   var deleteNumOfRows = weekRowIndex - retainHistoryLength;
   
@@ -236,34 +202,6 @@ Roster.removeHistory = function(retainHistoryLength) {
   }
     
   return false;
-}
-
-
-/**
- * Tests
- */
-function test_roster_suite() {
-  test_progressMembersHistory();
-}
-
-function test_progressMembersHistory() {
-  var newWeekArray = new Array("NA","Play","Play","Play","NA","NA","CBA","NA","NA","Play");
-  
-  var historyArray = new Array();
-  historyArray[0] = new Array("","","","","","","","","","");
-  historyArray[1] = new Array("Play","CBA","CBA","Play","NA","NA","CBA","Play","NA","Play");
-  historyArray[2] = new Array("NA","Play","Play","Play","NA","NA","Play","NA","NA","CBA");
-  historyArray[3] = new Array("NA","Play","Play","Play","NA","NA","Play","NA","NA","CBA");
-  
-  var expectedArray = new Array();
-  expectedArray[0] = new Array("Play","CBA","CBA","Play","NA","NA","CBA","Play","NA","Play");
-  expectedArray[1] = new Array("NA","Play","Play","Play","NA","NA","Play","NA","NA","CBA");
-  expectedArray[2] = new Array("NA","Play","Play","Play","NA","NA","Play","NA","NA","CBA");
-  expectedArray[3] = new Array("NA","Play","Play","Play","NA","NA","CBA","NA","NA","Play");
-  
-  var actualArray = Roster.progressMembersHistory(historyArray, newWeekArray);
-  
-  Logger.log(GSUnit.assertArrayEquals('Progress members history', expectedArray, actualArray));
 }
 
 
@@ -292,7 +230,6 @@ function test_removePastWeeks() {
  * Master Tests
  */
 function test_master_suite() {
-  test_roster_suite();
   test_allocate_suite();
   test_refresh_suite();
   test_load_config_suite();

@@ -1,5 +1,5 @@
 /**
- * V1.1.0
+ * V1.2.0
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -13,6 +13,36 @@ var AllocateMembers = {};
 // create local configuration object
 AllocateMembers.Config = {};
 Logger.log("Allocate Members configuration loaded");
+
+/*
+ * Allocate members for selected roster
+ *
+ * weeksArray - An array of week rows with each members roster
+ * historyArray - The previous weeks roster history rows
+ * maxWeeksRostered - Maximum consecutive weeks playing
+ * maxWeeksRest - Maximum consecutive weeks resting
+ * fillTeam - Object containing the start index to look for next available member to roster
+ */
+AllocateMembers.allocateSelectedMembers = function(weeksArray, historyArray, maxWeeksRostered, maxWeeksRest)
+{
+  var updated = false;
+  var fillTeam = { "start" : 0 }; // move the start to the first member
+  
+  // for each week allocate members
+  for(var i = 0; i < weeksArray.length; i++) {
+    var rosteredWeekArray = AllocateMembers.allocateMembersForWeek(weeksArray[i], historyArray, maxWeeksRostered, maxWeeksRest, fillTeam);
+    
+    // update week with roster
+    ArrayUtils.arrayCopy(rosteredWeekArray, weeksArray[i]);
+    
+    // move history down roster
+    historyArray = AllocateMembers.progressMembersHistory(historyArray, rosteredWeekArray);
+    
+    updated = true;
+  }
+  
+  return updated;
+}
 
 /**
  * Allocate members roster for a week
@@ -67,60 +97,55 @@ AllocateMembers.allocateMembersForWeek = function(weekArray, membersHistoryArray
       resultArray.push(result);
     }
     
-    fillTeam = defaultFor(fillTeam, { "start" : 0 });
-    
-    Logger.log('fillTeam.start: ' + fillTeam.start);
-    
-    // if there are not enough members allocated, change COULD_BE_AVAILABLE to ROSTERED
-    // start on member index fillTeam.start
-    if(rosteredCount !== Global().MAX_TEAM_MEMBERS) {
-      if(resultArray && Array.isArray(resultArray)) {
-        if(isEmpty(fillTeam) || isEmpty(fillTeam.start)) {
-          fillTeam.start = 0;
-          Logger.log('fillTeam.start not set');
+    // if there are not enough members allocated and some members are available, 
+    // change COULD_BE_AVAILABLE to ROSTERED, start on member index fillTeam.start
+    if(rosteredCount !== Global().MAX_TEAM_MEMBERS && resultArray && Array.isArray(resultArray)) {
+      if(isEmpty(fillTeam) || isEmpty(fillTeam.start)) {
+        fillTeam = { "start" : 0 };
+        Logger.log('fillTeam.start was not set, reset to the first member');
+      }
+      Logger.log('fillTeam.start: ' + fillTeam.start);
+      
+      var start = fillTeam.start;
+      var needMembers = true;
+      var needMemberLoops = 0;
+      
+      // loop until enough members are rostered
+      while(needMembers) {
+        for(var i=start; i < resultArray.length && rosteredCount < Global().MAX_TEAM_MEMBERS; i++) {
+          Logger.log('i: ' + i + ' rosteredCount: ' + rosteredCount);
+          if(resultArray[i] === Global().COULD_BE_AVAILABLE) {
+            resultArray[i] = Global().ROSTERED;
+            rosteredCount++;
+          }
         }
         
-        var start = fillTeam.start;
-        
-        if(fillTeam.start + 1 < resultArray.length)
-        {
-          // increment to next member after used
-          fillTeam.start++;
+        if(rosteredCount === Global().MAX_TEAM_MEMBERS) {
+          needMembers = false;
         } else {
-          // move the start to the first member again
-          fillTeam.start = 0;
-        }
-        
-        var needMembers = true;
-        var needMemberLoops = 0;
-        
-        // loop until enough members are rostered
-        while(needMembers) {
-          for(var i=start; i < resultArray.length && rosteredCount < Global().MAX_TEAM_MEMBERS; i++) {
-            Logger.log('i: ' + i + ' rosteredCount: ' + rosteredCount);
-            if(resultArray[i] === Global().COULD_BE_AVAILABLE) {
-              resultArray[i] = Global().ROSTERED;
-              rosteredCount++;
-            }
-          }
-          
-          if(rosteredCount === Global().MAX_TEAM_MEMBERS) {
-            needMembers = false;
+          // has all members been checked?
+          if(needMemberLoops > 1) {
+            // not enough members available, exit
+            needMembers = false;    
+            Logger.log('Not enough members: ' + rosteredCount);
           } else {
-            // has all members been checked?
-            if(needMemberLoops > 1) {
-              // not enough members available, exit
-              needMembers = false;    
-              Logger.log('Not enough members: ' + rosteredCount);
-            } else {
-              // not enough members, move the start to the first member again
-              start = 0;
-              Logger.log('start of week again');
-            }
+            // not enough members, move the start to the first member again
+            start = 0;
+            Logger.log('start of week again');
           }
-          
-          needMemberLoops++;
         }
+        
+        needMemberLoops++;
+      }
+      
+      // progress start of fill team
+      if(fillTeam.start + 1 < resultArray.length)
+      {
+        // increment to next member
+        fillTeam.start++;
+      } else {
+        // move the start to the first member again
+        fillTeam.start = 0;
       }
     }
   }
@@ -194,6 +219,19 @@ AllocateMembers.allocateMemberForWeek = function(memberWeek, memberHistoryArray,
 
 
 /**
+ * Move history array down the array(week rows), remove the oldest row, add the latest row
+ */
+AllocateMembers.progressMembersHistory = function(historyArray, newRow) {
+  if(Array.isArray(historyArray) && Array.isArray(newRow)) {
+    historyArray.shift(); // remove top
+    historyArray.push(newRow); // add new row to bottom
+  }
+  
+  return historyArray;
+}
+
+
+/**
  * Tests
  */
 
@@ -209,6 +247,7 @@ AllocateMembers.allocateMemberForWeek = function(memberWeek, memberHistoryArray,
 }
 
 function test_allocate_suite() {
+  test_allocate_selected_members();
   test_allocate_members_for_week_no_history();
   test_allocate_members_for_week_four_week_history();
   test_allocate_members_for_week_not_enough_members_available();
@@ -217,6 +256,11 @@ function test_allocate_suite() {
   test_allocate_member_for_week_with_multiple_history();
   test_allocate_member_for_week_with_multiple_different_history_consecutive_two();
   test_allocate_member_for_week_with_multiple_different_history_consecutive_five();
+  test_progress_members_history();
+}
+
+function test_allocate_selected_members() {
+  //AllocateMembers.allocateSelectedMembers = function(weeksArray, historyArray, maxWeeksRostered, maxWeeksRest);
 }
 
 function test_allocate_members_for_week_no_history() {
@@ -499,5 +543,63 @@ function test_allocate_member_for_week_with_multiple_different_history_consecuti
   actualStatus = AllocateMembers.allocateMemberForWeek("", historyArray, maxWeeksRostered, maxWeeksRest)
   
   Logger.log(GSUnit.assertEquals(comment, "CBA", actualStatus));
+}
+
+function test_progress_members_history() {
+  var historyArray = new Array();
+  historyArray[0] = new Array("CBA", "Play");
+  historyArray[1] = new Array("Play", "NA");
+  historyArray[2] = new Array("CBA", "CBA");
+  var expectedArray = new Array();
+  expectedArray[0] = new Array("CBA", "Play");
+  expectedArray[1] = new Array("Play", "NA");
+  expectedArray[2] = new Array("CBA", "CBA");
+  
+  var testRow;
+  
+  var actualArray = AllocateMembers.progressMembersHistory(historyArray, testRow);
+  
+  Logger.log(GSUnit.assertArrayEquals('Progress member history empty', expectedArray, actualArray));
+  
+  expectedArray[0] = new Array("Play", "NA");
+  expectedArray[1] = new Array("CBA", "CBA");
+  expectedArray[2] = new Array();
+  testRow = new Array();
+  
+  actualArray = AllocateMembers.progressMembersHistory(historyArray, testRow);
+  
+  Logger.log(GSUnit.assertArrayEquals('Progress member history empty array', expectedArray, actualArray));
+  
+  historyArray = new Array();
+  historyArray[0] = new Array("CBA", "Play");
+  historyArray[1] = new Array("Play", "NA");
+  historyArray[2] = new Array("CBA", "CBA");
+  expectedArray = new Array();
+  expectedArray[0] = new Array("Play", "NA");
+  expectedArray[1] = new Array("CBA", "CBA");
+  expectedArray[2] = new Array("CBA", "Play");
+  testRow = new Array("CBA", "Play");
+  
+  actualArray = AllocateMembers.progressMembersHistory(historyArray, testRow);
+  
+  Logger.log(GSUnit.assertArrayEquals('Progress 2 members history', expectedArray, actualArray));
+  
+  testRow = new Array("NA","Play","Play","Play","NA","NA","CBA","NA","NA","Play");
+  
+  historyArray = new Array();
+  historyArray[0] = new Array("","","","","","","","","","");
+  historyArray[1] = new Array("Play","CBA","CBA","Play","NA","NA","CBA","Play","NA","Play");
+  historyArray[2] = new Array("NA","Play","Play","Play","NA","NA","Play","NA","NA","CBA");
+  historyArray[3] = new Array("NA","Play","Play","Play","NA","NA","Play","NA","NA","CBA");
+  
+  expectedArray = new Array();
+  expectedArray[0] = new Array("Play","CBA","CBA","Play","NA","NA","CBA","Play","NA","Play");
+  expectedArray[1] = new Array("NA","Play","Play","Play","NA","NA","Play","NA","NA","CBA");
+  expectedArray[2] = new Array("NA","Play","Play","Play","NA","NA","Play","NA","NA","CBA");
+  expectedArray[3] = new Array("NA","Play","Play","Play","NA","NA","CBA","NA","NA","Play");
+  
+  var actualArray = AllocateMembers.progressMembersHistory(historyArray, testRow);
+  
+  Logger.log(GSUnit.assertArrayEquals('Progress 10 members history', expectedArray, actualArray));
 }
 
