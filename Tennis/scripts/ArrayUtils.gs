@@ -1,5 +1,5 @@
 /**
- * V1.1.0
+ * V1.1.1
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -297,7 +297,17 @@ ArrayUtils.arrayCopy = function(source, destination) {
   
   if(Array.isArray(source)) {
     for(var i = 0; i < source.length; i++) {
-      destination.push(source[i]);
+      var copiedValue;
+      
+      // nth dimension array
+      if(Array.isArray(source[i])) {
+        copiedValue = new Array();
+        ArrayUtils.arrayCopy(source[i], copiedValue);
+      } else {
+        copiedValue = source[i];
+      }
+      
+      destination.push(copiedValue);
     }
   }
 }
