@@ -1,5 +1,5 @@
 /**
- * V1.1.1
+ * V1.1.2
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -15,9 +15,9 @@ ArrayUtils.Config = {};
 Logger.log("Array Utilities configuration loaded");
 
 /**
- * Clone and Rotate array
+ * Clone and rotate array
  *
- * a - Array to rotate
+ * sourceArray - Array to rotate
  * intDegrees - degrees of rotation
  */
 ArrayUtils.arrayCloneRotate = function(sourceArray, intDegrees) {
@@ -30,6 +30,49 @@ ArrayUtils.arrayCloneRotate = function(sourceArray, intDegrees) {
   }
   
   return a;
+}
+
+/**
+ *
+ * Rotate one dimension array
+ *
+ * sourceArray - Array to rotate
+ * intDegrees - degrees of rotation
+ *
+ */
+ArrayUtils.arrayRotateOneDimension = function(sourceArray, intDegrees) {
+  // clone and rotate array
+  var rotatedArray = ArrayUtils.arrayCloneRotate(sourceArray, intDegrees);
+  
+  // remove the two dimension array if it was added during rotate, if possible
+  var rotatedOneDimensionArray = ArrayUtils.convertToArray(rotatedArray);
+   
+  // copy back to input array
+  ArrayUtils.arrayCopy(rotatedOneDimensionArray, sourceArray);
+}
+
+/**
+ *
+ * Rotate array right
+ * Utility to make it easier to read the tests.
+ *
+ * sourceArray - Array to rotate
+ *
+ */
+ArrayUtils.arrayRotateRight = function(sourceArray) {
+  ArrayUtils.arrayRotate(sourceArray, 90);
+}
+
+/**
+ *
+ * Rotate one dimension array right
+ * Utility to make it easier to read the tests.
+ *
+ * sourceArray - Array to rotate
+ *
+ */
+ArrayUtils.arrayRotateOneDimensionRight = function(sourceArray) {
+  return ArrayUtils.arrayRotateOneDimension(sourceArray, 90);
 }
 
 /**
@@ -272,14 +315,17 @@ ArrayUtils.convertToArrayOfArrays = function(input) {
 }
 
 /**
- * Removes outer array from two dimensional array to make a one dimensional array
+ * Removes outer array from two dimensional array to make a one dimensional array if possible
  */
 ArrayUtils.convertToArray = function(input) {
   var output = new Array();
   
   if(Array.isArray(input)) {
-    if(Array.isArray(input[0])) {
+    if(input.length === 1 && Array.isArray(input[0])) {
       ArrayUtils.arrayCopy(input[0], output);
+    } else {
+      // not a horizontal two dimension array, cannot convert
+      ArrayUtils.arrayCopy(input, output);
     }
   }
   
@@ -335,12 +381,32 @@ ArrayUtils.arrayClone = function( arr ) {
     }
 }
 
+/**
+ * Finds the width of a two dimensional array
+ */
+ArrayUtils.arrayMaxWidth = function(arr) {
+  var width = 0;
+  
+  if(Array.isArray(arr)) {
+    for(var i = 0; i < arr.length; i++) {
+      if(arr[i].length > width) {
+        width = arr[i].length;
+      }
+    }
+  }
+  
+  return width;
+}
+
 
 /**
  * Tests
  */
 function test_array_suite() {
   test_clone_rotate_array();
+  test_array_rotate_one_dimension();
+  test_array_rotate_right();
+  test_array_rotate_right_one_dimension();
   test_rotate_3_by_2_array_clockwise();
   test_rotate_2_by_3_array_clockwise();
   test_rotate_2_by_3_array_clockwise_back();
@@ -355,18 +421,22 @@ function test_array_suite() {
   test_convert_to_array();
   test_copy_array();
   test_clone_array();
+  test_array_max_width();
 }
 
 function test_clone_rotate_array() {
-  
-  var testArray = new Array("CBA","Play","NA");
+  var testArray = new Array();
+  testArray[0] = new Array("CBA","Play");
+  testArray[1] = new Array("Play","NA");
+  testArray[2] = new Array("Play","CBA");
   
   var expectedArray = new Array();
-  expectedArray[0] = new Array("NA");
-  expectedArray[1] = new Array("Play");
-  expectedArray[2] = new Array("CBA");
+  expectedArray[0] = new Array("Play","NA","CBA");
+  expectedArray[1] = new Array("CBA","Play","Play");
   
-  var expectedTestArray = new Array("CBA","Play");
+  var expectedTestArray = new Array();
+  expectedTestArray[0] = new Array("CBA","Play");
+  expectedTestArray[1] = new Array("Play","NA");
   
   var actualArray = ArrayUtils.arrayCloneRotate(testArray, -90); // rotate array to the left
   
@@ -375,6 +445,69 @@ function test_clone_rotate_array() {
   Logger.log(GSUnit.assertArrayEquals('Clone rotate confirm original test array changed', expectedTestArray, testArray));
   
   Logger.log(GSUnit.assertArrayEquals('Cloned and rotated array', expectedArray, actualArray));
+}
+
+function test_array_rotate_one_dimension() {
+  var actualArray = new Array("CBA","Play","NA");
+  
+  var expectedArray = new Array();
+  expectedArray[0] = new Array("NA");
+  expectedArray[1] = new Array("Play");
+  expectedArray[2] = new Array("CBA");
+  
+  ArrayUtils.arrayRotateOneDimension(actualArray, -90); // rotate left
+
+  Logger.log(GSUnit.assertArrayEquals('Rotated horizontal one dimensional array', expectedArray, actualArray));
+  
+  actualArray = new Array();
+  actualArray[0] = new Array("CBA");
+  actualArray[1] = new Array("Play");
+  actualArray[2] = new Array("NA");
+  
+  expectedArray = new Array("CBA","Play","NA");
+  
+  ArrayUtils.arrayRotateOneDimension(actualArray, -90);// rotate left
+
+  Logger.log(GSUnit.assertArrayEquals('Rotated vertical one dimensional array', expectedArray, actualArray));
+}
+
+function test_array_rotate_right() {
+  var actualArray = new Array();
+  actualArray[0] = new Array("CBA","Play");
+  actualArray[1] = new Array("Play","NA");
+  actualArray[2] = new Array("CBA","Play");
+  
+  var expectedArray = new Array();
+  expectedArray[0] = new Array("CBA","Play","CBA");
+  expectedArray[1] = new Array("Play","NA","Play");
+  
+  ArrayUtils.arrayRotateRight(actualArray);
+
+  Logger.log(GSUnit.assertArrayEquals('Rotated array right', expectedArray, actualArray));
+}
+
+function test_array_rotate_right_one_dimension() {
+  var actualArray = new Array("CBA","Play","NA");
+  
+  var expectedArray = new Array();
+  expectedArray[0] = new Array("CBA");
+  expectedArray[1] = new Array("Play");
+  expectedArray[2] = new Array("NA");
+  
+  ArrayUtils.arrayRotateOneDimensionRight(actualArray);
+
+  Logger.log(GSUnit.assertArrayEquals('Rotated horizontal one dimensional array right', expectedArray, actualArray));
+  
+  actualArray = new Array();
+  actualArray[0] = new Array("CBA");
+  actualArray[1] = new Array("Play");
+  actualArray[2] = new Array("NA");
+  
+  expectedArray = new Array("NA","Play","CBA");
+  
+  ArrayUtils.arrayRotateOneDimensionRight(actualArray);
+
+  Logger.log(GSUnit.assertArrayEquals('Rotated vertical one dimensional array right', expectedArray, actualArray));
 }
 
 function test_rotate_3_by_2_array_clockwise() {
@@ -672,14 +805,27 @@ function test_convert_to_array_of_arrays() {
 }
 
 function test_convert_to_array() {
-  // [["Play", "Play", "Play", "Play", "CBA"]]
-  var testArray = new Array();
-  testArray[0] = new Array("Play", "Play", "Play", "Play", "CBA");
+  var testArray = new Array(); // [["Play", "Play", "Play", "Play", "CBA"]]
+  testArray[0] = new Array("Play", "Play", "Play", "Play", "CBA"); 
   var expectedArray = new Array("Play", "Play", "Play", "Play", "CBA");
 
   var actualArray = ArrayUtils.convertToArray(testArray);
 
-  Logger.log(GSUnit.assertArrayEquals('Convert to array', expectedArray, actualArray));
+  Logger.log(GSUnit.assertArrayEquals('Convert horizontal two dimensional array to one dimensional array', expectedArray, actualArray));
+  
+  testArray = new Array(); // [["Play"],["NA"],["CBA"]]
+  testArray[0] = new Array("Play");
+  testArray[1] = new Array("NA");
+  testArray[2] = new Array("CBA");
+  
+  expectedArray = new Array(); // [["Play"],["NA"],["CBA"]]
+  expectedArray[0] = new Array("Play");
+  expectedArray[1] = new Array("NA");
+  expectedArray[2] = new Array("CBA");
+
+  actualArray = ArrayUtils.convertToArray(testArray);
+
+  Logger.log(GSUnit.assertArrayEquals('Do not convert vertical two dimensional array to one dimensional array, cannot be done', expectedArray, actualArray));
 }
 
 function test_copy_array() {
@@ -740,5 +886,17 @@ function test_clone_array() {
   Logger.log(GSUnit.assertArrayEquals('Confirm original test array changed', expectedTestArray, testArray));
 
   Logger.log(GSUnit.assertArrayEquals('Cloned array unchanged', expectedArray, actualArray));
+}
+
+function test_array_max_width() {
+  var testArray = new Array();
+  testArray[0] = new Array("NA");
+  testArray[1] = new Array("Play","CBA");
+  testArray[2] = new Array("CBA");
+  var expect = 2;
+  
+  var actual = ArrayUtils.arrayMaxWidth(testArray);
+  
+  Logger.log(GSUnit.assertEquals("Max width", expect, actual));
 }
 

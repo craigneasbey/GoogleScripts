@@ -1,5 +1,5 @@
 /**
- * V1.2.0
+ * V1.2.1
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -53,6 +53,9 @@ Roster.allocateMembers = function() {
   userConfiguration.maxWeeksRostered = Global().DEFAULT_MAX_WEEKS_ROSTERED;
   userConfiguration.maxWeeksRest = Global().DEFAULT_MAX_WEEKS_REST;
   var result = false;
+  
+  Logger.log("Roster current range: " + currentRangeDescription);
+  Logger.log("Roster current sheet: " + currentSheet.getName());
  
   if(Roster.Config.TESTING) {
     result = true;
@@ -71,8 +74,11 @@ Roster.allocateMembers = function() {
     // get the selected roster weeks
     var weeksArray = currentRange.getValues();
     
-    // allocate roster for selected members
-    var save = AllocateMembers.allocateSelectedMembers(weeksArray, historyArray, userConfiguration.maxWeeksRostered, userConfiguration.maxWeeksRest);
+    // best allocate roster for selected members
+    
+    // TODO remove userConfiguration.maxWeeksRostered, userConfiguration.maxWeeksRest
+    // var save = AllocateMembers.allocateSelectedMembers(weeksArray, historyArray, userConfiguration.maxWeeksRostered, userConfiguration.maxWeeksRest);
+    var save = BestAllocateMembers.bestAllocateSelectedMembers(weeksArray, historyArray);
         
     if(save) {
       currentRange.setValues(weeksArray);
@@ -230,6 +236,7 @@ function test_removePastWeeks() {
  * Master Tests
  */
 function test_master_suite() {
+  test_best_allocate_suite();
   test_allocate_suite();
   test_refresh_suite();
   test_load_config_suite();
