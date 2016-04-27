@@ -1,5 +1,5 @@
 /**
- * V1.2.1
+ * V1.2.2
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -13,6 +13,9 @@ var AllocateMembers = {};
 // create local configuration object
 AllocateMembers.Config = {};
 Logger.log("Allocate Members configuration loaded");
+
+var allocateProfiler = new Profiler("AllocateMembers");
+allocateProfiler.enabled = false;
 
 /*
  * Allocate members for selected roster
@@ -29,18 +32,29 @@ AllocateMembers.allocateSelectedMembers = function(weeksArray, historyArray, max
   //Logger.log("allocateSelectedMembers history: " + JSON.stringify(ArrayUtils.arrayCloneRotate(historyArray, -90), null, 1));
   //Logger.log("allocateSelectedMembers input: " + JSON.stringify(ArrayUtils.arrayCloneRotate(weeksArray, -90), null, 1));
   
+  allocateProfiler.log("allocateSelectedMembers");
+  
   // for each week allocate members
-  for(var i = 0; i < weeksArray.length; i++) {    
+  for(var i = 0; i < weeksArray.length; i++) {
+    allocateProfiler.log("start loop");
+    
     var rosteredWeekArray = AllocateMembers.allocateMembersForWeek(weeksArray[i], historyArray, maxWeeksRostered, maxWeeksRest, fillTeam);
+  
+    allocateProfiler.log("after allocateMembersForWeek");
     
     // update week with roster
     ArrayUtils.arrayCopy(rosteredWeekArray, weeksArray[i]);
+
+    allocateProfiler.log("before progressMembersHistory");
     
     // move history down roster
     historyArray = AllocateMembers.progressMembersHistory(historyArray, rosteredWeekArray);
     
     updated = true;
   }
+  
+  allocateProfiler.log("end allocateSelectedMembers");
+  allocateProfiler.logTotal();
   
   //Logger.log("allocateSelectedMembers output: " + JSON.stringify(ArrayUtils.arrayCloneRotate(weeksArray, -90), null, 1));
   
@@ -61,6 +75,8 @@ AllocateMembers.allocateMembersForWeek = function(weekArray, membersHistoryArray
   var rosteredCount = 0;
   var history = false;
   
+  allocateProfiler.log("allocateMembersForWeek");
+  
   if(weekArray && Array.isArray(weekArray)) {
     var arrayLength = 0;
     
@@ -70,8 +86,12 @@ AllocateMembers.allocateMembersForWeek = function(weekArray, membersHistoryArray
       maxWeeksRostered = defaultFor(maxWeeksRostered, 1);
       maxWeeksRest = defaultFor(maxWeeksRest, 1);
       
+      allocateProfiler.log("before arrayCloneRotate");
+      
       // rotate array to the right to iterate through each member roster history column
       var localHistoryArray = ArrayUtils.arrayCloneRotate(membersHistoryArray, 90);
+      
+      allocateProfiler.log("after arrayCloneRotate");
       
       // weekArray and localHistoryArray be the same length
       arrayLength = weekArray.length < localHistoryArray.length ? weekArray.length : localHistoryArray.length;
@@ -105,13 +125,15 @@ AllocateMembers.allocateMembersForWeek = function(weekArray, membersHistoryArray
     if(rosteredCount !== Global().MAX_TEAM_MEMBERS && resultArray && Array.isArray(resultArray)) {
       if(isEmpty(fillTeam) || isEmpty(fillTeam.start)) {
         fillTeam = { "start" : 0 };
-        Logger.log('fillTeam.start was not set, reset to the first member');
+        //Logger.log('fillTeam.start was not set, reset to the first member');
       }
       //Logger.log('fillTeam.start: ' + fillTeam.start);
       
       var start = fillTeam.start;
       var needMembers = true;
       var needMemberLoops = 0;
+      
+      allocateProfiler.log("before needMembers loop");
       
       // loop until enough members are rostered
       while(needMembers) {
@@ -141,6 +163,8 @@ AllocateMembers.allocateMembersForWeek = function(weekArray, membersHistoryArray
         needMemberLoops++;
       }
       
+      allocateProfiler.log("after needMembers loop");
+      
       // progress start of fill team
       if(fillTeam.start + 1 < resultArray.length)
       {
@@ -158,6 +182,9 @@ AllocateMembers.allocateMembersForWeek = function(weekArray, membersHistoryArray
     resultArray.push(Global().ROSTERED);
   }
   
+  allocateProfiler.log("end allocateMembersForWeek");
+  allocateProfiler.logTotal();
+  
   return resultArray;
 }
 
@@ -173,6 +200,8 @@ AllocateMembers.allocateMemberForWeek = function(memberWeek, memberHistoryArray,
   if(memberWeek === Global().NOT_AVAILABLE) {
     return memberWeek;
   }
+
+  allocateProfiler.log("allocateMemberForWeek");
     
   // if member history exists
   if(memberHistoryArray && Array.isArray(memberHistoryArray)) {
@@ -185,6 +214,8 @@ AllocateMembers.allocateMemberForWeek = function(memberWeek, memberHistoryArray,
     
     // get the larger amount of history required
     var historyRequiredLength = maxWeeksRostered > maxWeeksRest ? maxWeeksRostered : maxWeeksRest;
+    
+    allocateProfiler.log("before history loop");
     
     // for each previous week until max, starting at the previous week, going into the past
     // count the amount of rostered and rested weeks history until the sequence is broken
@@ -216,6 +247,8 @@ AllocateMembers.allocateMemberForWeek = function(memberWeek, memberHistoryArray,
       }
     }
     
+    allocateProfiler.log("after history loop");
+    
     // if history is all rostered to the max amount, return rest
     if(rosteredCount == maxWeeksRostered) {
       return Global().COULD_BE_AVAILABLE;
@@ -226,6 +259,9 @@ AllocateMembers.allocateMemberForWeek = function(memberWeek, memberHistoryArray,
       return Global().ROSTERED;
     }
   }
+  
+  allocateProfiler.log("end allocateMemberForWeek");
+  allocateProfiler.logTotal();
   
   // if no member history exists
   return Global().ROSTERED;
@@ -560,7 +596,7 @@ function test_allocate_member_for_week_with_multiple_different_history_consecuti
   ArrayUtils.arrayRotateOneDimensionRight(historyArray);
   var comment = 'Member for week, empty roster and Play, CBA, CBA, Play, CBA history, rostered 2, rest 2';
   
-  var actualStatus = AllocateMembers.allocateMemberForWeek("", historyArray, maxWeeksRostered, maxWeeksRest)
+  var actualStatus = AllocateMembers.allocateMemberForWeek("", historyArray, maxWeeksRostered, maxWeeksRest);
   
   Logger.log(GSUnit.assertEquals(comment, "Play", actualStatus));
   
@@ -575,7 +611,7 @@ function test_allocate_member_for_week_with_multiple_different_history_consecuti
   ArrayUtils.arrayRotateOneDimensionRight(historyArray);
   comment = 'Member for week, empty roster and CBA, Play, Play, CBA, CBA history, rostered 2, rest 2';
   
-  actualStatus = AllocateMembers.allocateMemberForWeek("", historyArray, maxWeeksRostered, maxWeeksRest)
+  actualStatus = AllocateMembers.allocateMemberForWeek("", historyArray, maxWeeksRostered, maxWeeksRest);
   
   Logger.log(GSUnit.assertEquals(comment, "CBA", actualStatus));
   
@@ -590,7 +626,7 @@ function test_allocate_member_for_week_with_multiple_different_history_consecuti
   ArrayUtils.arrayRotateOneDimensionRight(historyArray);
   comment = 'Member for week, empty roster and CBA, CBA, Play, Play, CBA history, rostered 2, rest 2';
   
-  actualStatus = AllocateMembers.allocateMemberForWeek("", historyArray, maxWeeksRostered, maxWeeksRest)
+  actualStatus = AllocateMembers.allocateMemberForWeek("", historyArray, maxWeeksRostered, maxWeeksRest);
   
   Logger.log(GSUnit.assertEquals(comment, "Play", actualStatus));
   
@@ -605,7 +641,7 @@ function test_allocate_member_for_week_with_multiple_different_history_consecuti
   ArrayUtils.arrayRotateOneDimensionRight(historyArray);
   comment = 'Member for week, empty roster and CBA, CBA, Play, Play, CBA history, rostered 2, rest 3';
   
-  actualStatus = AllocateMembers.allocateMemberForWeek("", historyArray, maxWeeksRostered, maxWeeksRest)
+  actualStatus = AllocateMembers.allocateMemberForWeek("", historyArray, maxWeeksRostered, maxWeeksRest);
   
   Logger.log(GSUnit.assertEquals(comment, "CBA", actualStatus));
 }

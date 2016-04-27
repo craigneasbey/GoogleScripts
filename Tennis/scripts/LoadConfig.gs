@@ -1,5 +1,5 @@
 /**
- * V1.1.0
+ * V1.1.1
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -47,7 +47,8 @@ function getGlobalConfigObject() {
   globalConfig.UPDATED_SHEET_NAME = 'Updated';
   globalConfig.MEMBER_NAME_ROW = getNumConfig("MEMBER_NAME_ROW", 4);
   globalConfig.MEMBER_EMAIL_ROW = getNumConfig("MEMBER_EMAIL_ROW", 5);
-  globalConfig.FIRST_ROSTER_ROW = getNumConfig("FIRST_ROSTER_ROW", 6); // the first week roster row
+  globalConfig.MEMBER_REMINDER_ROW = getNumConfig("MEMBER_REMINDER_ROW", 6);
+  globalConfig.FIRST_ROSTER_ROW = getNumConfig("FIRST_ROSTER_ROW", 7); // the first week roster row
   globalConfig.EMPTY = '';
   globalConfig.ROSTERED = getStrConfig("ROSTERED", 'Play');
   globalConfig.COULD_BE_AVAILABLE = getStrConfig("COULD_BE_AVAILABLE", 'CBA');
@@ -62,22 +63,23 @@ function getGlobalConfigObject() {
   globalConfig.NAME_START_COLUMN = 2; // the first column of member names
   
   globalConfig.NOTIFICATION_SENDER_NAME = getStrConfig("NOTIFICATION_SENDER_NAME", 'Tennis Roster');
-  globalConfig.NOTIFICATION_MESSAGE_FOOTER = getStrConfig("NOTIFICATION_MESSAGE_FOOTER", '\n\nNOTE: Tennis roster attached in PDF format (ignore other sheets)');
+  globalConfig.NOTIFICATION_MESSAGE_FOOTER = getStrConfig("NOTIFICATION_MESSAGE_FOOTER", '<div style="margin-top: 20px;">NOTE: Tennis roster attached in PDF format (ignore other sheets)</div>');
   
   globalConfig.UPDATED_UPDATED_ROW = 1;
   globalConfig.UPDATED_REMINDER_ROW = 2;
   globalConfig.UPDATED_CHECK_HOUR = getNumConfig("UPDATED_CHECK_HOUR", 6);
   globalConfig.UPDATED_SUBJECT = getStrConfig("UPDATED_SUBJECT", 'Tennis Roster Updated');
-  globalConfig.UPDATED_MESSAGE = getStrConfig("UPDATED_MESSAGE", 'Please check the tennis roster as it has been recently updated.');
+  globalConfig.UPDATED_MESSAGE = getStrConfig("UPDATED_MESSAGE", '<div style="margin-bottom: 20px;">Please check the tennis roster as it has been recently updated.</div>');
   
   globalConfig.REFRESH_CHECK_HOUR = getNumConfig("REFRESH_CHECK_HOUR", 2);
   globalConfig.REFRESH_CHECK_DAYS = getNumConfig("REFRESH_CHECK_DAYS", 1);
   
   globalConfig.REMINDERS = getBoolConfig("REMINDERS", true);
+  globalConfig.REMINDERS_ENABLED = getStrConfig("REMINDERS_ENABLED", "Yes");
   globalConfig.REMINDER_SEND_BEFORE_DAYS = getNumConfig("REMINDER_SEND_BEFORE_DAYS", 1);
   globalConfig.REMINDER_CHECK_HOUR = getNumConfig("REMINDER_CHECK_HOUR", 6);
   globalConfig.REMINDER_SUBJECT = getStrConfig("REMINDER_SUBJECT", 'Tennis Roster Reminder');
-  globalConfig.REMINDER_MESSAGE = getStrConfig("REMINDER_MESSAGE", 'This is a reminder that you are rostered on to play tennis this week.');
+  globalConfig.REMINDER_MESSAGE = getStrConfig("REMINDER_MESSAGE", '<div style="margin-bottom: 20px;">This is a reminder that you are rostered on to play tennis this week.</div>');
   
   return globalConfig;
 }

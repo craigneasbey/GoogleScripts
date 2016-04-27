@@ -1,5 +1,5 @@
 /**
- * V1.1.0
+ * V1.1.1
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -37,13 +37,18 @@ Reminder.checkReminder = function() {
         var subject = Global().REMINDER_SUBJECT;
         var message = Global().REMINDER_MESSAGE;
         
-        var memberColumns = Reminder.getRosteredMemberColumns(currentWeek);
-        var recipients = Notification.getIndividualMemberEmails(memberColumns);
+        var memberReminders = Reminder.getMembersReminder();
+        var memberRemindersColumns = Reminder.getReminderMemberColumns(memberReminders);
+        var memberRosteredColumns = Reminder.getRosteredMemberColumns(currentWeek);
+        var enabledMemberRemindersColumns = Reminder.enabledReminderMemberColumns(memberRosteredColumns, memberRemindersColumns);
+        var recipients = Notification.getIndividualMemberEmails(enabledMemberRemindersColumns);
         
         if(Reminder.Config.TESTING) {
-          message += '\nrecipients: ' + recipients + '\n';
+          message += '<div style="margin-top: 20px; margin-bottom: 20px;">recipients: ' + recipients + '</div>';
           recipients = [Session.getActiveUser().getEmail()];
         }
+        
+        message += Notification.createHTMLTable(Reminder.getCurrentWeekWithHeader());
         
         Notification.sendEmail(recipients, subject, message);
         
@@ -71,7 +76,7 @@ Reminder.getCurrentWeek = function(now) {
   var weeks = rosterRange.getValues();
   
   if(Array.isArray(weeks)) {
-    var currentWeekIndex = Refresh.findCurrentWeekIndex(weeks, now); // refresh function
+    var currentWeekIndex = Refresh.findCurrentWeekIndex(weeks, now);
     
     if(currentWeekIndex < weeks.length) {
       return weeks[currentWeekIndex];
@@ -113,21 +118,98 @@ Reminder.isReminderRequired = function(now, weekValue) {
 }
 
 /**
+ * Get the member reminder row in an array
+ */
+Reminder.getMembersReminder = function() {
+  var currentSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  var rosterSheet = currentSpreadsheet.getSheetByName(Global().ROSTER_SHEET_NAME);
+  
+  var startRow = Global().MEMBER_REMINDER_ROW; // row with member reminder preference (Yes/No)
+  var startCol = 1; // first empty column remove later
+  var numRows = 1;
+  var numCols = Global().MAX_MEMBER_COLUMNS;
+  
+  var dataRange = rosterSheet.getRange(startRow, startCol, numRows, numCols);
+  
+  return ArrayUtils.convertToArray(dataRange.getValues());
+}
+
+/**
+ * Get the reminder member columns
+ */
+Reminder.getReminderMemberColumns = function(memberReminders) {
+  return Reminder.getColumnNumbers(memberReminders, Global().REMINDERS_ENABLED);
+}
+
+/**
  * Get the rostered member columns for a given week
  */
 Reminder.getRosteredMemberColumns = function(weekArray) {
-  var memberColumns = new Array();
+  return Reminder.getColumnNumbers(weekArray, Global().ROSTERED);
+}
 
-  if(Array.isArray(weekArray)) {
-    // start with first rostered value
-    for(var i=1; i < weekArray.length; i++) {
-      if(weekArray[i] === Global().ROSTERED) {
-        memberColumns.push(i);
+/**
+ * Get the columns numbers that equal the required value.
+ * Start with first column value.
+ */
+Reminder.getColumnNumbers = function(columnArray, requiredValue) {
+  var columns = new Array();
+
+  if(Array.isArray(columnArray)) {
+    // start with first column value
+    for(var i = 1; i < columnArray.length; i++) {
+      if(columnArray[i] === requiredValue) {
+        columns.push(i);
       }
     }
   }
   
-  return memberColumns;
+  return columns;
+}
+
+/**
+ * Filter member columns on enabled reminders
+ */
+Reminder.enabledReminderMemberColumns = function(memberRosteredColumns, memberReminderColumns) {
+  var memberReminders = new Array();
+  
+  if(Array.isArray(memberRosteredColumns) && Array.isArray(memberReminderColumns)) {
+    var found = false;
+    
+    for (i in memberRosteredColumns) {
+      var found = false;
+      for (var j = 0; j < memberReminderColumns.length && !found; j++) {
+        if(memberRosteredColumns[i] === memberReminderColumns[j]) {
+          memberReminders.push(memberRosteredColumns[i]);
+          found = true;
+        }
+      }
+    }
+  }
+  
+  return memberReminders;
+}
+
+/**
+ * Get the member names row and current week row
+ */
+Reminder.getCurrentWeekWithHeader = function() {
+  var currentWeek = new Array();
+  
+  // get member names row as header
+  var currentSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  var rosterSheet = currentSpreadsheet.getSheetByName(Global().ROSTER_SHEET_NAME);
+  var names = Refresh.getMemberNames(rosterSheet);
+  names.unshift(""); // add a empty string to the front of the array for display
+  currentWeek.push(names);
+  
+  // get current week row
+  var currentWeekRow = Reminder.getCurrentWeek(new Date());
+  // change date to date stamp string
+  currentWeekRow[Global().DATE_COLUMN - 1] = DateUtils.formatDateDD_MON_YYYY(currentWeekRow[Global().DATE_COLUMN - 1]);
+  currentWeek.push(currentWeekRow);
+  
+  return currentWeek;
 }
 
 /**
@@ -175,21 +257,98 @@ Reminder.isRemindered = function() {
 
 
 /**
+ * Tests
+ */
+function test_reminder_suite() {
+  test_get_reminder_member_columns();
+  test_get_rostered_member_columns();
+  test_get_column_numbers();
+  test_enabled_reminder_member_columns();
+}
+
+function test_get_reminder_member_columns() {
+  var memberReminders = new Array("", "No","Yes","No","No","No","No","No","No","Yes","No");
+  var expectedArray = new Array(2,9);
+  
+  var actualArray = Reminder.getReminderMemberColumns(memberReminders);
+
+  GSUnit.assertArrayEquals('Reminder member columns', expectedArray, actualArray);
+}
+
+function test_get_rostered_member_columns() {
+  var testArray = new Array("23 Feb 2016","Play","Play","Play","NA","NA","CBA","NA","NA","Play");
+  var expectedArray = new Array(1,2,3,9);
+  
+  var actualArray = Reminder.getRosteredMemberColumns(testArray);
+  
+  GSUnit.assertArrayEquals('Rostered member columns', expectedArray, actualArray);
+  
+  testArray = new Array();
+  
+  expectedArray = new Array();
+  
+  actualArray = Reminder.getRosteredMemberColumns(testArray);
+  
+  GSUnit.assertArrayEquals('Rostered member columns no columns', expectedArray, actualArray);
+  
+  testArray = null;
+  
+  expectedArray = new Array();
+  
+  actualArray = Reminder.getRosteredMemberColumns(testArray);
+  
+  GSUnit.assertArrayEquals('Rostered member columns null', expectedArray, actualArray);
+}
+
+function test_get_column_numbers() {
+  var columnArray = new Array("Test", "Test","Yes","No","No","is","This","No","Test","Hi");
+  var requiredValue = "Test";
+  var expectedArray = new Array(1,8);
+  
+  var actualArray = Reminder.getColumnNumbers(columnArray, requiredValue);
+
+  GSUnit.assertArrayEquals('Column numbers', expectedArray, actualArray);
+}
+
+function test_enabled_reminder_member_columns() {
+  var memberRosteredColumns = new Array(1,2,3,9);
+  var memberReminderColumns = new Array(2,9);
+  var expectedArray = new Array(2,9);
+  
+  var actualArray = Reminder.enabledReminderMemberColumns(memberRosteredColumns, memberReminderColumns); 
+  
+  GSUnit.assertArrayEquals('Enabled reminder member columns', expectedArray, actualArray);
+}
+
+
+/**
  * Manual Tests (relies on Roster and Updated sheet values,
- * reminderConfig.TESTING should be set to true before running
+ * Reminder.Config.TESTING should be set to true before running
  * some individual tests)
  */
 function test_manual_reminder_suite() {
+  test_get_reminder_member_columns();
+  test_get_rostered_member_columns();
+  test_enabled_reminder_member_columns();
+  test_get_current_week_with_header();
   test_setReminder();
   test_isRemindered();
   test_isReminderRequired();
-  test_getRosteredMemberColumns();
   
   Reminder.Config.TESTING = true;
   
-  test_triggerReminder();
+  test_checkReminder();
   
   Reminder.Config.TESTING = false;
+}
+
+function test_get_current_week_with_header() {
+  var actualArray = Reminder.getCurrentWeekWithHeader();
+  
+  GSUnit.assertTrue('Current week with header size', actualArray.length === 2);
+  GSUnit.assertTrue('Current week with header names size', actualArray[0].length === 7);
+  GSUnit.assertTrue('Current week with header names first blank', isEmptyStr(actualArray[0][0]));
+  GSUnit.assertTrue('Current week with header roster size', actualArray[1].length === 7);
 }
 
 function test_setReminder() {
@@ -273,33 +432,7 @@ function test_isReminderRequired() {
   Reminder.setReminder('');
 }
 
-function test_getRosteredMemberColumns() {
-  var testArray = new Array("23 Feb 2016","Play","Play","Play","NA","NA","CBA","NA","NA","Play");
-  
-  var expectedArray = new Array(1,2,3,9);
-  
-  var actualArray = Reminder.getRosteredMemberColumns(testArray);
-  
-  GSUnit.assertArrayEquals('Rostered member columns', expectedArray, actualArray);
-  
-  testArray = new Array();
-  
-  expectedArray = new Array();
-  
-  actualArray = Reminder.getRosteredMemberColumns(testArray);
-  
-  GSUnit.assertArrayEquals('Rostered member columns no columns', expectedArray, actualArray);
-  
-  testArray = null;
-  
-  expectedArray = new Array();
-  
-  actualArray = Reminder.getRosteredMemberColumns(testArray);
-  
-  GSUnit.assertArrayEquals('Rostered Member Columns null', expectedArray, actualArray);
-}
-
 function test_checkReminder() {
-  checkReminder();
+  Reminder.checkReminder();
 }
 

@@ -1,5 +1,5 @@
 /**
- * V1.1.0
+ * V1.1.1
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -129,6 +129,33 @@ DateUtils.convertToStamps = function(input) {
   return input;
 }
 
+/**
+ * Convert a date to a string with format "DD MON YYYY"
+ */
+DateUtils.formatDateDD_MON_YYYY = function(currentDate) {
+  if(currentDate instanceof Date) {
+    //var timeZoneName = DateUtils.getTimeZoneName(currentDate);
+    var timezone = SpreadsheetApp.getActive().getSpreadsheetTimeZone();
+    
+    return Utilities.formatDate(currentDate, timezone, "dd MMM yyyy");
+  }
+  
+  return "";
+}
+
+/**
+ * Get the time zone short name from a date
+ *
+ * http://stackoverflow.com/questions/1954397/detect-timezone-abbreviation-using-javascript
+ */
+DateUtils.getTimeZoneName = function(currentDate) {
+  if(currentDate instanceof Date) {
+    return currentDate.toLocaleTimeString('en-us',{timeZoneName:'short'}).split(' ')[2];
+  }
+  
+  return "UTC";
+}
+
 
 /**
  * Tests
@@ -143,6 +170,8 @@ function test_date_suite() {
   test_equalWithinTolerance();
   test_compareWithinTolerance();
   test_day_of_week();
+  test_format_date_DD_MON_YYYY();
+  test_get_time_zone_name();
 }
 
 
@@ -379,3 +408,21 @@ function test_day_of_week() {
   Logger.log(GSUnit.assertArrayEquals('Saturdays in April 2016', DateUtils.convertToStamps(expectedArray), DateUtils.convertToStamps(actualArray)));
 }
 
+function test_format_date_DD_MON_YYYY() {
+  var testDate = DateUtils.createLocalDate(2016, 5, 2, 0, 0, 0);
+  var expected = '02 May 2016';
+  
+  var actual = DateUtils.formatDateDD_MON_YYYY(testDate);
+  
+  GSUnit.assertEquals('Format date DD_MON_YYYY', expected, actual);
+}
+
+function test_get_time_zone_name()
+{
+  var testDate = DateUtils.createLocalDate(2016, 5, 2, 0, 0, 0);
+  var expected = 'AEST';
+  
+  var actual = DateUtils.getTimeZoneName(testDate);
+  
+  GSUnit.assertEquals('Time zone name', expected, actual);
+}

@@ -1,5 +1,5 @@
 /**
- * V1.3.0
+ * V1.3.1
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -15,6 +15,9 @@ BestAllocateMembers.Config = {};
 BestAllocateMembers.Config.MAX_SCORE = 999;
 Logger.log("Best Allocate Members configuration loaded");
 
+var bestAllocateProfiler = new Profiler("BestAllocateMembers");
+bestAllocateProfiler.enabled = false;
+
 /*
  * Best allocate members for selected roster, iterate through all possible outcomes to find the best
  *
@@ -29,23 +32,37 @@ BestAllocateMembers.bestAllocateSelectedMembers = function(weeksArray, historyAr
   var noOfMembers = ArrayUtils.arrayMaxWidth(weeksArray);
   var idealScore = BestAllocateMembers.getIdealScore(Global().MAX_TEAM_MEMBERS, noOfMembers, weeksArray.length);
   Logger.log("Best allocation idealScore: " + idealScore);
+  var loops = 0;
+  
+  bestAllocateProfiler.log("bestAllocateSelectedMembers");
   
   for(var maxWeeksRostered = 1; maxWeeksRostered < noOfMembers; maxWeeksRostered++) {
     for(var maxWeeksRest = 0; maxWeeksRest < noOfMembers; maxWeeksRest++) {
       for(var start = 0; start < noOfMembers; start++) { // move the start to the nth member
-
+        bestAllocateProfiler.log("bestAllocateSelectedMembers loop");
+        
         // copy array to attempt to find the best allocation
         var weeksArrayClone = ArrayUtils.arrayClone(weeksArray);
+
         AllocateMembers.allocateSelectedMembers(weeksArrayClone, ArrayUtils.arrayClone(historyArray), maxWeeksRostered, maxWeeksRest, { "start" : start });
+        
+        bestAllocateProfiler.log("bestAllocateSelectedMembers after allocateSelectedMembers");
         
         // rotate array to the right to allow iteration through each roster weeks member
         weeksArrayClone = ArrayUtils.arrayRotate(weeksArrayClone, 90);
+        
         bestScore = BestAllocateMembers.getBestScore(BestAllocateMembers.getScore(weeksArrayClone, maxWeeksRostered, maxWeeksRest, start, idealScore), bestScore);
+        
+        loops++;
+        bestAllocateProfiler.log("bestAllocateSelectedMembers loop end");
       }
     }
   }
   
-  Logger.log("Best allocation bestScore: " + bestScore.score + " maxWeeksRostered: " + bestScore.maxWeeksRostered + " maxWeeksRest: " + bestScore.maxWeeksRest + " start: " + bestScore.start);
+  bestAllocateProfiler.log("bestAllocateSelectedMembers end");
+  bestAllocateProfiler.logTotal();
+  
+  Logger.log("Best allocation bestScore: " + bestScore.score + " maxWeeksRostered: " + bestScore.maxWeeksRostered + " maxWeeksRest: " + bestScore.maxWeeksRest + " start: " + bestScore.start + " loops: " + loops);
 
   // only update weeksArray once the best allocation is found
   return AllocateMembers.allocateSelectedMembers(weeksArray, ArrayUtils.arrayClone(historyArray), bestScore.maxWeeksRostered, bestScore.maxWeeksRest, { "start" : bestScore.start });

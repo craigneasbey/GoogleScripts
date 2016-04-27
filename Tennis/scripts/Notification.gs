@@ -1,5 +1,5 @@
 /**
- * V1.1.0
+ * V1.1.1
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -19,7 +19,8 @@ Logger.log("Notification configuration loaded");
  * Emails all the members
  */
 Notification.emailMembers = function(subject, message) {
-  var memberEmails = Notification.getMemberEmails();
+  var memberEmails = Notification.getMemberEmails();  
+   message = '<div style="margin-bottom: 20px;">' + message + '</div>';
   
   Notification.sendEmail(memberEmails, subject, message);
 }
@@ -80,13 +81,9 @@ Notification.getIndividualMemberEmails = function(columns) {
  */
 Notification.sendEmail = function(recipients, subject, message) {
   var file = DriveApp.getFileById(SPREADSHEET_DOCUMENT_ID);
-  var options = {
-    name: Global().NOTIFICATION_SENDER_NAME,
-    attachments: [file.getAs(MimeType.PDF)] 
-  };
   
   message += Global().NOTIFICATION_MESSAGE_FOOTER;
-  message += '\nhttps://docs.google.com/spreadsheets/d/' + SPREADSHEET_DOCUMENT_ID + '/edit?usp=sharing';
+  message += '<div>https://docs.google.com/spreadsheets/d/' + SPREADSHEET_DOCUMENT_ID + '/edit?usp=sharing</div>';
   
   var recipientsCSV = '';
   
@@ -100,9 +97,25 @@ Notification.sendEmail = function(recipients, subject, message) {
     }
     
     if(!isEmptyStr(recipientsCSV)) {
-      MailApp.sendEmail(recipientsCSV, subject, message, options);
+      MailApp.sendEmail({
+        to: recipientsCSV,
+        subject: subject,
+        htmlBody: message,
+        name: Global().NOTIFICATION_SENDER_NAME,
+        attachments: [file.getAs(MimeType.PDF)]
+     });
     }
   }
+}
+
+/**
+ * Create a HTML table from an array
+ */
+Notification.createHTMLTable = function(sourceArray) {
+  var htmlObject = HtmlService.createTemplateFromFile('table.html');
+  htmlObject.data = sourceArray;
+  
+  return htmlObject.evaluate().setSandboxMode(HtmlService.SandboxMode.IFRAME).getContent();
 }
 
 
@@ -118,6 +131,7 @@ function test_manual_notification_suite() {
   Notification.Config.TESTING = true;
 
   test_sendEmail();
+  test_send_email_html();
   
   Notification.Config.TESTING = false;
 }
@@ -152,5 +166,26 @@ function test_getIndividualMemberEmails() {
 
 function test_sendEmail() {
   Notification.sendEmail([Session.getActiveUser().getEmail()], 'Test Notification', 'This is a test notification');
+}
+
+function test_send_email_html() {
+  var t = HtmlService.createTemplateFromFile('table.html');
+  t.data = new Array();
+  t.data[0] = new Array("","Bob","John","Paul","Peter","David","Jerry");
+  t.data[1] = new Array("22 Jul 2016","Play","CBA","Play","NA","Play","Play");
+  var message = t.evaluate().setSandboxMode(HtmlService.SandboxMode.IFRAME).getContent();
+  
+  Notification.sendEmail([Session.getActiveUser().getEmail()], 'Test HTML Notification', message);
+}
+
+function test_create_HTML_table() {
+  var testArray = new Array();
+  testArray[0] = new Array("","Bob","John","Paul","Peter","David","Jerry");
+  testArray[1] = new Array("22 Jul 2016","Play","CBA","Play","NA","Play","Play");
+  var expected = '<!DOCTYPE html> <html> <head> <base target="_top"> </head> <body> <table cellspacing="0" cellpadding="5" style="border-left: 1px solid #000; border-top:1px solid #000; border-bottom: ...';
+  
+  var actual = Notification.createHTMLTable(testArray);
+  
+  GSUnit.assertEquals('Create HTML table', expected, actual);
 }
 

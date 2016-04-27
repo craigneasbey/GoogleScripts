@@ -1,5 +1,5 @@
 /**
- * V1.1.0
+ * V1.1.1
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -47,35 +47,50 @@ Refresh.refreshCurrentWeek = function(now) {
 /**
  * Get the number of members
  */
-Refresh.getNumOfMembers = function(rosterSheet) {  
+Refresh.getNumOfMembers = function(rosterSheet) {
+  var names = Refresh.getMemberNames(rosterSheet);
+  
+  if(Array.isArray(names)) {
+    return names.length;
+  }
+  
+  return 0;
+}
+
+/**
+ * Get the member names row
+ */
+Refresh.getMemberNames = function(rosterSheet) {
   var numOfRows = 1;
   
   var nameRange = rosterSheet.getRange(Global().MEMBER_NAME_ROW,Global().NAME_START_COLUMN,numOfRows,Global().MAX_MEMBER_COLUMNS);
   var names = nameRange.getValues();
   
-  return Refresh.getNumContentColumns(names);
+  return Refresh.getContentColumns(names);
 }
 
 /**
- * Get the number of columns with content
+ * Get the columns with content
  */
-Refresh.getNumContentColumns = function(rowArray) {
-  var numContent = 0;
+Refresh.getContentColumns = function(rowArray) {
+  var emptyIndex = 0;
   var row = 0;
   var finished = false;
   
   if(Array.isArray(rowArray) && Array.isArray(rowArray[row])) {
     // for each string, until empty cell found
-    for(var i=0; i < rowArray[row].length && !finished; i++) {
+    for(var i = 0; i < rowArray[row].length && !finished; i++) {
       if(isEmptyStr(rowArray[row][i])) {
-        numContent = i;
+        emptyIndex = i; 
         
         finished = true;
       }
     }
+    
+    return rowArray[row].splice(0, emptyIndex);
   }
   
-  return numContent;
+  return new Array();
 }
 
 /**
@@ -129,36 +144,38 @@ Refresh.findCurrentWeekIndex = function(weekDates, now) {
  * Tests
  */
 function test_refresh_suite() {
-  test_getNumContentColumns();
-  test_findCurrentWeekIndex();
+  test_get_content_columns();
+  test_find_current_week_index();
 }
 
-function test_getNumContentColumns() {
+function test_get_content_columns() {
   var testArray = new Array();
   testArray[0] = new Array("Test","Hi","This","", "");
+  var expected = new Array("Test","Hi","This");
   
-  var expected = 3;
-  var actual = Refresh.getNumContentColumns(testArray);
+  var actual = Refresh.getContentColumns(testArray);
   
-  GSUnit.assert('Content Columns Empty', actual === expected);
+  GSUnit.assertArrayEquals('Content Columns Empty', expected, actual);
   
+  testArray = new Array();
   testArray[0] = new Array("Test",null, null);
+  expected = new Array("Test");
   
-  expected = 1;
-  actual = Refresh.getNumContentColumns(testArray);
+  actual = Refresh.getContentColumns(testArray);
   
-  GSUnit.assert('Content Columns Null', actual === expected);
+  GSUnit.assertArrayEquals('Content Columns Null', expected, actual);
   
+  testArray = new Array();
   testArray[0] = "Test";
+  expected = new Array();
   
-  expected = 0;
-  actual = Refresh.getNumContentColumns(testArray);
+  actual = Refresh.getContentColumns(testArray);
   
-  GSUnit.assert('Content Columns No Array', actual === expected);
+  GSUnit.assertArrayEquals('Content Columns No Array', expected, actual);
 }
 
 
-function test_findCurrentWeekIndex() {
+function test_find_current_week_index() {
   var testArray = new Array();
   testArray[0] = new Array("02 Feb 2016");
   testArray[1] = new Array("09 Feb 2016");
