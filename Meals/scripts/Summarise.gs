@@ -1,17 +1,24 @@
 /**
- * V1.1.0
+ * V1.2.0
+ * https://developers.google.com/apps-script/reference/
+ *
+ * Could change logging to https://github.com/peterherrmann/BetterLog
+ *
+ * Created by craigneasbey (https://github.com/craigneasbey/GoogleScripts/tree/master/Meals)
  */
+
+var Summarise = {};
  
 /**
  * Summarise into an alphabetically ordered list with times
  * multipler as a prefix eg. '2x Carrot'
  */
-function summariseList(list) {
+Summarise.summariseList = function(list) {
   var output = new Array();
   
   while(list.length > 0)
   {
-    var currentItem = summariseItem(list.shift(), list);
+    var currentItem = Summarise.summariseItem(list.shift(), list);
     
     if(currentItem) {
       output.push(currentItem);
@@ -20,7 +27,7 @@ function summariseList(list) {
   
   // sort list
   output.sort(function(a, b) { 
-    return parseItem(a).name.localeCompare(parseItem(b).name); 
+    return Summarise.parseItem(a).name.localeCompare(Summarise.parseItem(b).name); 
   });
   
   return output;
@@ -31,12 +38,12 @@ function summariseList(list) {
  * eg. '3x Carrot,2x Carrot' becomes '5x Carrot'
  * Note: Spelling has to be identical except for character case
  */
-function summariseItem(item, list) {
+Summarise.summariseItem = function(item, list) {
   
-  var itemObj = parseItem(item);
+  var itemObj = Summarise.parseItem(item);
   
   for(var i = 0; i < list.length; i++) {
-    var currentItem = parseItem(list[i]);
+    var currentItem = Summarise.parseItem(list[i]);
     
     // merge items, ignore trailing 's'
     if(itemObj.name === currentItem.name || itemObj.name + 's' === currentItem.name || itemObj.name === currentItem.name + 's') {
@@ -48,14 +55,14 @@ function summariseItem(item, list) {
     }
   }
   
-  return formatItem(itemObj);
+  return Summarise.formatItem(itemObj);
 }
 
 /**
  * Parse a shopping list item string into an object with count and name
  */
-function parseItem(item) {
-  var rawItem = strip(item);
+Summarise.parseItem = function(item) {
+  var rawItem = Summarise.strip(item);
   
   var itemObj = {};
   itemObj.count = 1;
@@ -66,7 +73,7 @@ function parseItem(item) {
   var loop = true;
   
   for(var i = 0; i < rawItem.length && loop; i++) {
-    if(isNumeric(rawItem.charAt(i))) {
+    if(Summarise.isNumeric(rawItem.charAt(i))) {
       countStr += rawItem.charAt(i);
       countPresent = true;
     } else if(rawItem.charAt(i) === 'x' && countPresent) {
@@ -84,7 +91,7 @@ function parseItem(item) {
 /**
  * Remove white space from the end of a string and lower the case
  */
-function strip(string) {
+Summarise.strip = function(string) {
   if(string) {
     // replace(/\s+/g, '')
     return string.trim().toLowerCase();
@@ -100,21 +107,21 @@ function strip(string) {
  *
  * http://run.plnkr.co/plunks/93FPpacuIcXqqKMecLdk/
  */
-function isNumeric(n) {
+Summarise.isNumeric = function(n) {
   return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
 /**
  * Capitalise first character of string, then make the remaining characters lower case
  */
-function capitaliseFirstLetter(string) {
+Summarise.capitaliseFirstLetter = function(string) {
     return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
 }
 
 /**
  * Output a shopping list item in the format '<COUNT>x <NAME>' eg. '2x Carrot'
  */
-function formatItem(itemObj) {
+Summarise.formatItem = function(itemObj) {
   return itemObj.count + 'x ' + itemObj.name;
 }
 
@@ -122,62 +129,85 @@ function formatItem(itemObj) {
 /**
  * Tests
  */
-function test_suite() {
-  test_summariseList();
-  test_summariseItem();
-  test_parseItem();
+function test_summarise_suite() {
+  test_summarise_list();
+  test_summarise_item();
+  test_parse_item();
   test_strip();
-  test_capitaliseFirstLetter();
+  test_is_numeric();
+  test_capitalise_first_letter();
+  test_format_item()
 }
 
-function test_summariseList() {
+function test_summarise_list() {
   var testList = ['2x Carrot', 'Carrot', 'Fruit', 'fruits ', '2x Tomato Paste Can'];
   var expectedList = ['3x carrot', '2x fruit', '2x tomato paste can'];
   
-  var actualList = summariseList(testList);
+  var actualList = Summarise.summariseList(testList);
   
   Logger.log(GSUnit.assertHashEquals('These should be equal', expectedList, actualList)); 
 }
 
-function test_summariseItem() {
+function test_summarise_item() {
   var testList = ['2x Carrot', 'Carrots', 'Fruit', 'fruit '];
   var testItem = '4x Carrot';
   var expectedItem = '7x carrot';
   
-  var actualItem = summariseItem(testItem, testList);
+  var actualItem = Summarise.summariseItem(testItem, testList);
   
   Logger.log(GSUnit.assertEquals('These should be equal', expectedItem, actualItem)); 
 }
 
-function test_parseItem() {
+function test_parse_item() {
   var testItem = '3x Carrot ';
   var expectedItemObj = { "count" : 3, "name" : "carrot" };
   
-  var actualItemObj = parseItem(testItem);
+  var actualItemObj = Summarise.parseItem(testItem);
   
   Logger.log(GSUnit.assertHashEquals('These should be equal', expectedItemObj, actualItemObj));
   
   var testItem2 = '3 Carrot ';
   var expectedItemObj2 = { "count" : 1, "name" : "3 carrot" };
   
-  var actualItemObj2 = parseItem(testItem2);
+  var actualItemObj2 = Summarise.parseItem(testItem2);
   
   Logger.log(GSUnit.assertHashEquals('These should be equal', expectedItemObj2, actualItemObj2)); 
 }
 
 function test_strip() {
-  Logger.log(GSUnit.assertEquals('These should be equal', '2x tomato paste can', strip('2x TomatO Paste CAn')));
+  Logger.log(GSUnit.assertEquals('These should be equal', '2x tomato paste can', Summarise.strip('2x TomatO Paste CAn')));
 }
 
-function test_capitaliseFirstLetter() {
-  Logger.log(GSUnit.assertEquals('These should be equal', 'Fruit', capitaliseFirstLetter('fruiT')));
+function test_is_numeric() {
+  var testItemObj = "34";
+  
+  var actual = Summarise.isNumeric(testItemObj);
+  
+  Logger.log(GSUnit.assertTrue('Is numeric 34', actual));
+  
+  testItemObj = "string";
+  
+  actual = Summarise.isNumeric(testItemObj);
+  
+  Logger.log(GSUnit.assertFalse('Is numeric string', actual));
+  
+  testItemObj = "4x";
+  
+  actual = Summarise.isNumeric(testItemObj);
+  
+  Logger.log(GSUnit.assertFalse('Is numeric 4x', actual));
 }
 
-function test_formatItem() {
+function test_capitalise_first_letter() {
+  Logger.log(GSUnit.assertEquals('These should be equal', 'Fruit', Summarise.capitaliseFirstLetter('fruiT')));
+}
+
+function test_format_item() {
   var testItemObj = { "count" : 3, "name" : "Tomato Paste Can" };
   var expectedItem = '3x Tomato Paste Can';
   
-  var actualItem = formatItem(testItemObj);
+  var actualItem = Summarise.formatItem(testItemObj);
   
   Logger.log(GSUnit.assertEquals('These should be equal', expectedItem, actualItem));
 }
+

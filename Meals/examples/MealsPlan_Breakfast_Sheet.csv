@@ -1,7 +1,7 @@
-Food,Ingredients
-Sultana bran,Sultana Bran;Light Milk;Fruit
-Porridge,Oats;Light Milk;Berries;Banana;Honey
-Baked beans,Small can baked beans;Wholegrain Bread
-Eggs,2x Egg;Wholegrain Bread;Mushroom;Tomato
-Muesli,Raw Muesli;Light Milk;Yoghurt
-Toasties,Wholegrain Bread;Cheese;Tomato
+Food,Ingredients,Instructions
+Sultana bran,Sultana Bran;Light Milk;Fruit,Add in bowl
+Porridge,Oats;Light Milk;Berries;Banana;Honey,Add in bowl
+Baked beans,Small can baked beans;Wholegrain Bread,Plate up
+Eggs,2x Egg;Wholegrain Bread;Mushroom;Tomato,Saucepan and plate up
+Muesli,Raw Muesli;Light Milk;Yoghurt,Add in bowl
+Toasties,Wholegrain Bread;Cheese;Tomato,Sandwich press and plate up

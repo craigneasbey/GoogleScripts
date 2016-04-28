@@ -1,24 +1,28 @@
 /**
- * V1.0.0
+ * V1.2.0
  * https://developers.google.com/apps-script/reference/
  *
  * Could change logging to https://github.com/peterherrmann/BetterLog
+ *
+ * Created by craigneasbey (https://github.com/craigneasbey/GoogleScripts/tree/master/Meals)
  */
 
-var ACTIONS = ['Show', 'Hide', 'Top', 'Middle', 'Bottom', 'Up', 'Down'];
+var ListActions = {};
+
+ListActions.ACTIONS = ['Show', 'Hide', 'Top', 'Middle', 'Bottom', 'Up', 'Down'];
 
 /**
- * Runs when spreadsheet cell has finished editing
+ * Action an edit event on a list item
  */
-function onEdit(e) {
+ListActions.editEvent = function(e) {
   // if text value is "Hide" then hide the row of that cell
   if(e.value) {
     if(e.value === "Hide") {
-      Logger.log("onEdit: " + JSON.stringify(e));
-      hideRow_();
+      Logger.log("editEvent: " + JSON.stringify(e));
+      ListActions.hideRow();
     } else if(e.value === "Up" || e.value === "Down" || e.value === "Top" || e.value === "Middle" || e.value === "Bottom") {
-      Logger.log("onEdit: " + JSON.stringify(e));
-      moveRowAround_(e.value);
+      Logger.log("editEvent: " + JSON.stringify(e));
+      ListActions.moveRowAround(e.value);
     }
   }
 }
@@ -26,16 +30,17 @@ function onEdit(e) {
 /**
  * Hide the current row
  */
-function hideRow_() {
+ListActions.hideRow = function() {
   var currentSheet = SpreadsheetApp.getActiveSheet();
   
   currentSheet.hideRows(currentSheet.getActiveCell().getRow());
 }
 
 /**
- * Move the row around the current row up or down
+ * Move the row around the current row up, down,
+ * top row, middle row, bottom row
  */
-function moveRowAround_(direction) {
+ListActions.moveRowAround = function(direction) {
   var currentSheet = SpreadsheetApp.getActiveSheet();
   var currentCell = currentSheet.getActiveCell();
   var currentRow = currentCell.getRow();
@@ -49,50 +54,50 @@ function moveRowAround_(direction) {
     var destRow = currentRow + 1;
     
     // move to next row if it is hidden
-    while(isHiddenRow(srcRow, currentSheet)) {
+    while(ListActions.isHiddenRow(srcRow, currentSheet)) {
       srcRow -= 1;
     }
     
     // move to next row if it is hidden
-    while(isHiddenRow(destRow, currentSheet)) {
+    while(ListActions.isHiddenRow(destRow, currentSheet)) {
       destRow += 1;
     }
     
     if(srcRow > 0 && destRow > 0) {
-      moveRowAroundByNum_(srcRow, destRow, currentSheet);
+      ListActions.moveRowAroundByNum(srcRow, destRow, currentSheet);
     }
   } else if(direction === "Down") {    
     var srcRow = currentRow + 1;
     var destRow = currentRow;
     
     // move to next row if it is hidden
-    while(isHiddenRow(srcRow, currentSheet)) {
+    while(ListActions.isHiddenRow(srcRow, currentSheet)) {
       srcRow += 1;
     }
     
     if(srcRow > 0 && destRow > 0) {
-      moveRowAroundByNum_(srcRow, destRow, currentSheet);
+      ListActions.moveRowAroundByNum(srcRow, destRow, currentSheet);
     }
   } else if(direction === "Top") {
     var srcRow = currentRow;
     var destRow = 1;
     
     if(srcRow > 0 && destRow > 0) {
-      moveRowByNum_(srcRow, destRow, currentSheet);
+      ListActions.moveRowByNum(srcRow, destRow, currentSheet);
     }
   } else if(direction === "Middle") {
     var srcRow = currentRow;
     var destRow = currentSheet.getDataRange().getLastRow()/2 + 1; // middle data row
     
     if(srcRow > 0 && destRow > 0) {
-      moveRowByNum_(srcRow, destRow, currentSheet);
+      ListActions.moveRowByNum(srcRow, destRow, currentSheet);
     }
   } else if(direction === "Bottom") {   
     var srcRow = currentRow;
     var destRow = currentSheet.getDataRange().getLastRow() + 1; // last data row
     
     if(srcRow > 0 && destRow > 0) {
-      moveRowByNum_(srcRow, destRow, currentSheet);
+      ListActions.moveRowByNum(srcRow, destRow, currentSheet);
     }
   }
 }
@@ -102,7 +107,7 @@ function moveRowAround_(direction) {
  *
  * Work around to feature request: https://code.google.com/p/google-apps-script-issues/issues/detail?id=195
  */
-function isHiddenRow(currentRow, currentSheet) {
+ListActions.isHiddenRow = function(currentRow, currentSheet) {
   var startCol = 1;
   var numOfRows = 1;
   var numOfCols = 1;
@@ -124,7 +129,7 @@ function isHiddenRow(currentRow, currentSheet) {
 /**
  * Move a row up or down around the current row based on the row number
  */
-function moveRowAroundByNum_(fromRow, toRow, currentSheet) {
+ListActions.moveRowAroundByNum = function(fromRow, toRow, currentSheet) {
   var startCol = 1;
   var numOfRows = 1;
   var numOfCols = 10;
@@ -145,7 +150,7 @@ function moveRowAroundByNum_(fromRow, toRow, currentSheet) {
 /**
  * Move the current row up or down based on the row number
  */
-function moveRowByNum_(fromRow, toRow, currentSheet) {
+ListActions.moveRowByNum = function(fromRow, toRow, currentSheet) {
   var startCol = 1;
   var numOfRows = 1;
   var numOfCols = 10;
@@ -172,8 +177,8 @@ function moveRowByNum_(fromRow, toRow, currentSheet) {
  *
  * See https://developers.google.com/apps-script/guides/triggers/events#google_sheets_events
  */
-function test_onEditHide() {
-  onEdit({
+function test_edit_event_hide() {
+  ListActions.editEvent({
     user : "",
     source : SpreadsheetApp.getActiveSpreadsheet(),
     range : SpreadsheetApp.getActiveSpreadsheet().getActiveCell(),
@@ -182,8 +187,8 @@ function test_onEditHide() {
   });
 }
 
-function test_onEditDown() {
-  onEdit({
+function test_edit_event_down() {
+  ListActions.editEvent({
     user : "",
     source : SpreadsheetApp.getActiveSpreadsheet(),
     range : SpreadsheetApp.getActiveSpreadsheet().getActiveCell(),
@@ -192,8 +197,8 @@ function test_onEditDown() {
   });
 }
 
-function test_onEditUp() {
-  onEdit({
+function test_edit_event_up() {
+  ListActions.editEvent({
     user : "",
     source : SpreadsheetApp.getActiveSpreadsheet(),
     range : SpreadsheetApp.getActiveSpreadsheet().getActiveCell(),
@@ -202,8 +207,8 @@ function test_onEditUp() {
   });
 }
 
-function test_onEditTop() {
-  onEdit({
+function test_edit_event_top() {
+  ListActions.editEvent({
     user : "",
     source : SpreadsheetApp.getActiveSpreadsheet(),
     range : SpreadsheetApp.getActiveSpreadsheet().getActiveCell(),
@@ -212,8 +217,8 @@ function test_onEditTop() {
   });
 }
 
-function test_onEditMiddle() {
-  onEdit({
+function test_edit_event_middle() {
+  ListActions.editEvent({
     user : "",
     source : SpreadsheetApp.getActiveSpreadsheet(),
     range : SpreadsheetApp.getActiveSpreadsheet().getActiveCell(),
@@ -222,8 +227,8 @@ function test_onEditMiddle() {
   });
 }
 
-function test_onEditBottom() {
-  onEdit({
+function test_edit_event_bottom() {
+  ListActions.editEvent({
     user : "",
     source : SpreadsheetApp.getActiveSpreadsheet(),
     range : SpreadsheetApp.getActiveSpreadsheet().getActiveCell(),

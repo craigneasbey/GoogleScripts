@@ -1,42 +1,37 @@
 /**
- * V1.1.3
+ * V1.2.0
  * https://developers.google.com/apps-script/reference/
  *
  * Could change logging to https://github.com/peterherrmann/BetterLog
+ *
+ * Created by craigneasbey (https://github.com/craigneasbey/GoogleScripts/tree/master/Meals)
  */
 
-/**
- * Runs when the spreadsheet is open, adds a menu to the spreadsheet
- */
-function onOpen() {
-  var spreadsheet = SpreadsheetApp.getActive();
-  var menuItems = [
-    {name: 'Generate Shopping List...', functionName: 'generateShoppingList_'}
-  ];
-  spreadsheet.addMenu('Shopping List', menuItems);
-}
+var ShoppingList = {};
 
 /**
  * Recreate the shopping list from the meal plan
  */
-function generateShoppingList_() {
+ShoppingList.generateShoppingList = function() {
+  var PLAN_SHEET_NAME = 'Plan';
+  
   var spreadsheet = SpreadsheetApp.getActive();
-  var planSheet = spreadsheet.getSheetByName('Plan');
+  var planSheet = spreadsheet.getSheetByName(PLAN_SHEET_NAME);
 
   var meals = 7;
   var shoppingList = new Array();
   
   for(var mealPlanRow = 2; mealPlanRow <= meals; mealPlanRow++) {
-    addDayMeals_(mealPlanRow, shoppingList, planSheet, spreadsheet);
+    ShoppingList.addDayMeals(mealPlanRow, shoppingList, planSheet, spreadsheet);
   }
   
-  saveShoppingList_(summariseList(shoppingList), spreadsheet);
+  ShoppingList.saveShoppingList(Summarise.summariseList(shoppingList), spreadsheet);
 }
 
 /**
  * Get the meals for each day and lookup the meal sheet for ingredients
  */
-function addDayMeals_(mealPlanRow, shoppingList, planSheet, spreadsheet) {
+ShoppingList.addDayMeals = function(mealPlanRow, shoppingList, planSheet, spreadsheet) {
   var mealsPlusWeekdays = 8;
     
   var planRow = planSheet.getRange(mealPlanRow, 1, 1, mealsPlusWeekdays);
@@ -59,14 +54,14 @@ function addDayMeals_(mealPlanRow, shoppingList, planSheet, spreadsheet) {
   for(var planDay = 1; planDay < planRowCols; planDay++) {
     var mealChoice = planRowValues[0][planDay];
     
-    addMealIngredients_(mealChoice, mealRowValues, shoppingList);
+    ShoppingList.addMealIngredients(mealChoice, mealRowValues, shoppingList);
   }
 }
 
 /**
  * Add ingredients to shopping list
  */
-function addMealIngredients_(mealChoice, mealRowValues, shoppingList) {
+ShoppingList.addMealIngredients = function(mealChoice, mealRowValues, shoppingList) {
      
     //Browser.msgBox("mealChoice: " + mealChoice);
     Logger.log("mealChoice: " + mealChoice);
@@ -103,7 +98,7 @@ function addMealIngredients_(mealChoice, mealRowValues, shoppingList) {
 /**
  * Save shopping list to the Shopping List sheet
  */
-function saveShoppingList_(shoppingList, spreadsheet) {
+ShoppingList.saveShoppingList = function(shoppingList, spreadsheet) {
   var SHOPPING_LIST_SHEET_NAME = 'Shopping List';
   
   if(shoppingList.length > 0) {
@@ -125,12 +120,14 @@ function saveShoppingList_(shoppingList, spreadsheet) {
     var lastColumn = itemCol;
     
     var itemColumn = shoppingListSheet.getRange(1, itemCol, shoppingList.length, 1);
-    itemColumn.setValues(convertToArrayOfArrays(shoppingList));
+    // convert array list to sheet rows and columns
+    ArrayUtils.arrayRotateOneDimensionRight(shoppingList);
+    itemColumn.setValues(shoppingList);
     
     // add Action dropdown
     var actionColumn = shoppingListSheet.getRange(1, actionCol, shoppingList.length, 1);
     actionColumn.setValue("Show");
-    var actionRule = SpreadsheetApp.newDataValidation().requireValueInList(ACTIONS, true).build();
+    var actionRule = SpreadsheetApp.newDataValidation().requireValueInList(ListActions.ACTIONS, true).build();
     actionColumn.setDataValidation(actionRule);
     
     // increase font on check column for mobile usage
@@ -156,23 +153,20 @@ function saveShoppingList_(shoppingList, spreadsheet) {
 
 
 /**
- * Convert one dimensional array to two dimensional array for the sheet range
+ * Manual test
  */
-function convertToArrayOfArrays(input) {
-  var output = new Array;
-  
-  for(var i = 0; i < input.length; i++) {
-    output.push([input[i]]);
-  }
-  
-  return output;
+function test_generateShoppingList() {
+  ShoppingList.generateShoppingList();
 }
 
 
+
+
 /**
- * Test function for onOpen
+ * Master Tests
  */
-function test_generateShoppingList() {
-  generateShoppingList_();
+function test_master_suite() {
+  test_summarise_suite();
+  test_array_suite();
 }
 
