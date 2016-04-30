@@ -1,5 +1,5 @@
 /**
- * V1.2.0
+ * V1.2.1
  * https://developers.google.com/apps-script/reference/
  *
  * Could change logging to https://github.com/peterherrmann/BetterLog
@@ -87,7 +87,8 @@ ListActions.moveRowAround = function(direction) {
     }
   } else if(direction === "Middle") {
     var srcRow = currentRow;
-    var destRow = currentSheet.getDataRange().getLastRow()/2 + 1; // middle data row
+    var shownRows = ListActions.getNumberOfShownRows(ListActions.getShownRows(currentSheet));
+    var destRow = shownRows/2 + 1; // middle data row
     
     if(srcRow > 0 && destRow > 0) {
       ListActions.moveRowByNum(srcRow, destRow, currentSheet);
@@ -167,6 +168,62 @@ ListActions.moveRowByNum = function(fromRow, toRow, currentSheet) {
   // delete existing row
   currentSheet.deleteRow(fromRow);
 }
+
+
+/**
+ * Get all shown rows
+ */
+ListActions.getShownRows = function(currentSheet) {
+  var startRow = 1;
+  var startCol = 1;
+  var numOfRows = currentSheet.getDataRange().getLastRow();
+  var numOfCols = 1;
+  
+  var shownRange = currentSheet.getRange(startRow, startCol, numOfRows, numOfCols);
+  
+  return shownRange.getValues();
+}
+
+/**
+ * Get the number of shown rows
+ */
+ListActions.getNumberOfShownRows = function(allShownRows) {
+  ArrayUtils.arrayRotateOneDimension(allShownRows, -90); // rotate array left
+  var count = 0;
+    
+  for(var i = 0; i < allShownRows.length; i++) {   
+    if(allShownRows[i] === 'Show') {
+      count++;
+    }
+  }
+
+  return count;
+}
+
+
+/**
+ * Tests
+ */
+function test_list_action_suite() {
+  test_get_number_of_shown_rows();
+}
+
+function test_get_number_of_shown_rows() {
+  var testArray = new Array();
+  testArray[0] = new Array('Show');
+  testArray[1] = new Array('Hide');
+  testArray[2] = new Array('Hide');
+  testArray[3] = new Array('Show');
+  testArray[4] = new Array('Show');
+  testArray[5] = new Array('Show');
+  testArray[6] = new Array('Show');
+  var expected = 5;
+  
+  var actual = ListActions.getNumberOfShownRows(testArray);
+  
+  Logger.log(GSUnit.assertEquals('Get number of shown rows', expected, actual));
+}
+
 
 
 /**

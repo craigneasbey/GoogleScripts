@@ -1,6 +1,7 @@
 /**
- * V1.2.0
+ * V1.2.1
  * https://developers.google.com/apps-script/reference/
+ * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
  * Could change logging to https://github.com/peterherrmann/BetterLog
  *
@@ -161,12 +162,13 @@ function test_generateShoppingList() {
 
 
 
-
 /**
  * Master Tests
  */
 function test_master_suite() {
   test_summarise_suite();
+  test_list_action_suite();
   test_array_suite();
+  test_string_suite();
 }
 
