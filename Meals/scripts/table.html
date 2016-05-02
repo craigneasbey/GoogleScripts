@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <!-- V1.0.0 -->
+  </head>
+  <body>
+    <table cellspacing=0 cellpadding=5 style="border-left: 1px solid #000; border-top:1px solid #000; margin-bottom: 20px">
+      <? for (var i = 0; i < data.length; i++) { ?>
+        <tr>
+          <? for (var j = 0; j < data[i].length; j++) { ?>
+            <? if (i === 0 || j === 0) { // first header row and column ?>
+              <td style="background-color: #6aa84f; color: white; border-right: 1px solid #000; border-bottom:1px solid #000;"><?= data[i][j] ?></td>
+            <? } else { ?>
+              <td style="border-right:1px solid #000; border-bottom:1px solid #000;"><?= data[i][j] ?></td>
+            <? } ?>
+          <? } ?>
+        </tr>
+      <? } ?>
+    </table>
+  </body>
+</html>
+
