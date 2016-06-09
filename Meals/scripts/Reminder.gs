@@ -1,5 +1,5 @@
 /**
- * V1.2.0
+ * V1.2.1
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -104,15 +104,20 @@ Reminder.getMealsDetailsForDay = function(dayMealsPlan, getAllMealDetails) {
   if(Array.isArray(dayMealsPlan)) {
     for(var i = 1; i < dayMealsPlan.length; i++) {
       if(Array.isArray(dayMealsPlan[i]) && dayMealsPlan.length > 1) {
-        var dayAllMealDetails = getAllMealDetails(dayMealsPlan[i][0]);
-        
-        for(var j = 1; j < dayAllMealDetails.length; j++) {
-          if(Array.isArray(dayAllMealDetails[j])  && dayMealsPlan.length > 2) {
-            // add when the plan food is the same as meal detail food
-            if(dayMealsPlan[i][1] === dayAllMealDetails[j][0]) {
-              dayMealsDetails.push(new Array(dayAllMealDetails[j][0],dayAllMealDetails[j][1],dayAllMealDetails[j][2]));
+        // check if a meal is selected
+        if(!isEmptyStr(dayMealsPlan[i][1])) {
+          var dayAllMealDetails = getAllMealDetails(dayMealsPlan[i][0]);
+          
+          for(var j = 1; j < dayAllMealDetails.length; j++) {
+            if(Array.isArray(dayAllMealDetails[j])  && dayMealsPlan.length > 2) {
+              // add when the plan food is the same as meal detail food
+              if(dayMealsPlan[i][1] === dayAllMealDetails[j][0]) {
+                dayMealsDetails.push(new Array(dayAllMealDetails[j][0],dayAllMealDetails[j][1],dayAllMealDetails[j][2]));
+              }
             }
           }
+        } else {
+          dayMealsDetails.push(new Array("","",""));
         }
       }
     }
@@ -198,7 +203,7 @@ function test_get_meals_details_for_day() {
   dayMealsPlan[2] = new Array("Snack","Cruskits");
   dayMealsPlan[3] = new Array("Lunch","Egg Wrap");
   dayMealsPlan[4] = new Array("Snack","Yoghurt");
-  dayMealsPlan[5] = new Array("Dinner","San Cho Bow");
+  dayMealsPlan[5] = new Array("Dinner",null); // dinner was not selected
   dayMealsPlan[6] = new Array("Supper","Milo");
   
   function testMealsDetails(mealName) {
@@ -251,7 +256,7 @@ function test_get_meals_details_for_day() {
   expectedArray[2] = new Array("Cruskits","ingredients_test","instructions_test");
   expectedArray[3] = new Array("Egg Wrap","ingredients_test","instructions_test");
   expectedArray[4] = new Array("Yoghurt","ingredients_test","instructions_test");
-  expectedArray[5] = new Array("San Cho Bow","ingredients_test","instructions_test");
+  expectedArray[5] = new Array("","","");
   expectedArray[6] = new Array("Milo","ingredients_test","instructions_test");
   
   var actualArray = Reminder.getMealsDetailsForDay(dayMealsPlan, testMealsDetails);
@@ -279,3 +284,4 @@ function test_manual_reminder_suite() {
 function test_sendReminder() {
   Reminder.sendReminder();
 }
+
