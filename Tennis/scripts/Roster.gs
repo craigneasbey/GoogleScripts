@@ -1,5 +1,5 @@
 /**
- * V1.2.2
+ * V1.2.3
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -49,9 +49,6 @@ Roster.allocateMembers = function() {
   var currentSheet = SpreadsheetApp.getActiveSheet();
   var currentRange = currentSheet.getActiveRange();
   var currentRangeDescription = currentRange.getA1Notation();
-  var userConfiguration = {};
-  userConfiguration.maxWeeksRostered = Global().DEFAULT_MAX_WEEKS_ROSTERED;
-  userConfiguration.maxWeeksRest = Global().DEFAULT_MAX_WEEKS_REST;
   var result = false;
   
   Logger.log("Roster current range: " + currentRangeDescription);
@@ -60,24 +57,23 @@ Roster.allocateMembers = function() {
   if(Roster.Config.TESTING) {
     result = true;
   } else {
-    result = Roster.getUserAllocationConfiguration(userConfiguration, currentRangeDescription);
+    result = Roster.getUserAllocationConfiguration(currentRangeDescription);
   }
     
   if(result) {
-    // check user input
-    userConfiguration.maxWeeksRostered = defaultFor(userConfiguration.maxWeeksRostered, Global().DEFAULT_MAX_WEEKS_ROSTERED);
-    userConfiguration.maxWeeksRest = defaultFor(userConfiguration.maxWeeksRest, Global().DEFAULT_MAX_WEEKS_REST);
-    
-    // get the selected history
-    var historyArray = Roster.getSelectHistory(userConfiguration.maxWeeksRostered, userConfiguration.maxWeeksRest, currentRange, currentSheet);
+    // display toast message for 5 seconds
+    SpreadsheetApp.getActiveSpreadsheet().toast('Optimum allocation could take a few seconds...', 'Status', 5);
     
     // get the selected roster weeks
     var weeksArray = currentRange.getValues();
     
-    // best allocate roster for selected members
+    // get number of members for history array
+    var noOfMembers = ArrayUtils.arrayMaxWidth(weeksArray);
     
-    // TODO remove userConfiguration.maxWeeksRostered, userConfiguration.maxWeeksRest
-    // var save = AllocateMembers.allocateSelectedMembers(weeksArray, historyArray, userConfiguration.maxWeeksRostered, userConfiguration.maxWeeksRest);
+    // get the selected history
+    var historyArray = Roster.getSelectHistory(noOfMembers, currentRange, currentSheet);
+    
+    // best allocate roster for selected members
     var save = BestAllocateMembers.bestAllocateSelectedMembers(weeksArray, historyArray);
         
     if(save) {
@@ -90,7 +86,7 @@ Roster.allocateMembers = function() {
 /**
  * Prompt the user for roster allocation configuration values
  */
-Roster.getUserAllocationConfiguration = function(userConfiguration, currentRangeDescription) {
+Roster.getUserAllocationConfiguration = function(currentRangeDescription) {
   var promptTitle = '';
   var promptText = '';
   var result = false;
@@ -104,22 +100,6 @@ Roster.getUserAllocationConfiguration = function(userConfiguration, currentRange
   
   if(result) {
     Logger.log("current range: " + JSON.stringify(currentRangeDescription));
-    
-    // get configuration from user
-    promptTitle = 'Allocation Configuration';
-    promptText = 'Enter maximum consecutive weeks rostered (default ' + userConfiguration.maxWeeksRostered + '):';
-    userConfiguration.maxWeeksRostered = GUIUtils.openEntryDialog(promptTitle, promptText);
-    
-    if(userConfiguration.maxWeeksRostered === GUIUtils.CANCEL) {
-      return false;
-    }
-    
-    promptText = 'Enter maximum consecutive weeks resting (default ' + userConfiguration.maxWeeksRest + '):';
-    userConfiguration.maxWeeksRest = GUIUtils.openEntryDialog(promptTitle, promptText);
-    
-    if(userConfiguration.maxWeeksRest === GUIUtils.CANCEL) {
-      return false;
-    }
   }
   
   return result;
@@ -128,8 +108,8 @@ Roster.getUserAllocationConfiguration = function(userConfiguration, currentRange
 /*
  * Get rostered/rest history from sheet
  */
-Roster.getSelectHistory = function(maxWeeksRostered, maxWeeksRest, currentRange, currentSheet) {
-  var historyLength = maxWeeksRostered > maxWeeksRest ? maxWeeksRostered : maxWeeksRest;
+Roster.getSelectHistory = function(noOfMembers, currentRange, currentSheet) {
+  var historyLength = noOfMembers;
   var currentRowIndex = currentRange.getRow();
   var currentColumnIndex = currentRange.getColumn();
   var currentNumOfColumns = currentRange.getNumColumns();
@@ -168,7 +148,11 @@ Roster.emailMembersMessage = function() {
  */
 Roster.removePastWeeks = function() {
   Logger.log("Roster.removePastWeeks function called");
-  var historyLength = Global().DEFAULT_MAX_WEEKS_ROSTERED > Global().DEFAULT_MAX_WEEKS_REST ? Global().DEFAULT_MAX_WEEKS_ROSTERED : Global().DEFAULT_MAX_WEEKS_REST;
+  
+  // default history length to numOfMembers
+  var currentSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  var rosterSheet = currentSpreadsheet.getSheetByName(Roster.Config.ROSTER_SHEET_NAME);
+  var historyLength = Refresh.getNumOfMembers(rosterSheet);
 
   // get configuration from user
   if(!Roster.Config.TESTING) {

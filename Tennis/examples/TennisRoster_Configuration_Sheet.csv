@@ -18,8 +18,6 @@ MEMBER_EMAIL_ROW,5,Spreadsheet row with member email addresses
 MEMBER_REMINDER_ROW,6,Spreadsheet row with member reminder preference
 FIRST_ROSTER_ROW,7,Spreadsheet first roster row
 MAX_TEAM_MEMBERS,4,Maximum number of team members allocated for one week
-DEFAULT_MAX_WEEKS_ROSTERED,2,Default maximum consecutive weeks rostered on
-DEFAULT_MAX_WEEKS_REST,1,Default maximum consecutive weeks rostered off
 MAX_ROSTER_ROWS,1000,Maximum rows to search for roster values
 MAX_MEMBER_COLUMNS,100,Maximum columns to search for members
 ROSTERED,Play,

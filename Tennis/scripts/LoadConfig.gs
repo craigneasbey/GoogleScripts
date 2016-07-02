@@ -1,5 +1,5 @@
 /**
- * V1.1.1
+ * V1.1.2
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -56,8 +56,6 @@ function getGlobalConfigObject() {
   globalConfig.MAX_TEAM_MEMBERS = getNumConfig("MAX_TEAM_MEMBERS", 4);
   globalConfig.MAX_ROSTER_ROWS = getNumConfig("MAX_ROSTER_ROWS", 1000); // arbitrary number
   globalConfig.MAX_MEMBER_COLUMNS = getNumConfig("MAX_MEMBER_COLUMNS", 100); // arbitrary number
-  globalConfig.DEFAULT_MAX_WEEKS_ROSTERED = getNumConfig("DEFAULT_MAX_WEEKS_ROSTERED", 2); // maximum consecutive weeks rostered
-  globalConfig.DEFAULT_MAX_WEEKS_REST = getNumConfig("DEFAULT_MAX_WEEKS_REST", 1); // maximum consecutive weeks resting
   globalConfig.DEFAULT_YEAR = getStrConfig("DEFAULT_YEAR", "2016");
   globalConfig.DATE_COLUMN = 1; // the first column is the week date
   globalConfig.NAME_START_COLUMN = 2; // the first column of member names
