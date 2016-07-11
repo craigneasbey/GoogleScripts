@@ -1,5 +1,5 @@
 /**
- * V1.2.1
+ * V1.2.2
  * https://developers.google.com/apps-script/reference/
  *
  * Could change logging to https://github.com/peterherrmann/BetterLog
@@ -9,21 +9,41 @@
 
 var ListActions = {};
 
-ListActions.ACTIONS = ['Show', 'Hide', 'Top', 'Middle', 'Bottom', 'Up', 'Down'];
+ListActions.ACTIONS = ['Show', 'Hide', 'Top', 'Middle', 'Bottom', 'Up', 'Down', 'Validate'];
 
 /**
  * Action an edit event on a list item
  */
 ListActions.editEvent = function(e) {
-  // if text value is "Hide" then hide the row of that cell
-  if(e.value) {
-    if(e.value === "Hide") {
-      Logger.log("editEvent: " + JSON.stringify(e));
-      ListActions.hideRow();
-    } else if(e.value === "Up" || e.value === "Down" || e.value === "Top" || e.value === "Middle" || e.value === "Bottom") {
-      Logger.log("editEvent: " + JSON.stringify(e));
-      ListActions.moveRowAround(e.value);
+  var ERRORS_SHEET_NAME = 'Errors';
+  
+  try {
+    // if text value is "Hide" then hide the row of that cell
+    if(e.value) {
+      if(e.value === "Hide") {
+        Logger.log("editEvent: " + JSON.stringify(e));
+        ListActions.hideRow();
+      } else if(e.value === "Up" || e.value === "Down" || e.value === "Top" || e.value === "Middle" || e.value === "Bottom") {
+        Logger.log("editEvent: " + JSON.stringify(e));
+        ListActions.moveRowAround(e.value);
+      } else if(e.value === "Validate") {
+        ListActions.validateAllRows();
+      }
     }
+  } catch(e) {
+    var spreadsheet = SpreadsheetApp.getActive();
+    var errorSheet = spreadsheet.getSheetByName(ERRORS_SHEET_NAME);
+    
+    // Insert sheet if it does not exist
+    if (errorSheet === null) {
+      errorSheet = currentSpreadsheet.insertSheet(ERRORS_SHEET_NAME);
+    }
+    
+    var lastRow = errorSheet.getLastRow();
+    var cell = errorSheet.getRange('A1');
+    cell.offset(lastRow, 0).setValue(e.message);
+    cell.offset(lastRow, 1).setValue(e.fileName);
+    cell.offset(lastRow, 2).setValue(e.lineNumber);
   }
 }
 
@@ -87,7 +107,7 @@ ListActions.moveRowAround = function(direction) {
     }
   } else if(direction === "Middle") {
     var srcRow = currentRow;
-    var shownRows = ListActions.getNumberOfShownRows(ListActions.getShownRows(currentSheet));
+    var shownRows = ListActions.getNumberOfShownRows(ListActions.getDataRows(currentSheet));
     var destRow = shownRows/2 + 1; // middle data row
     
     if(srcRow > 0 && destRow > 0) {
@@ -171,17 +191,22 @@ ListActions.moveRowByNum = function(fromRow, toRow, currentSheet) {
 
 
 /**
- * Get all shown rows
+ * Get all rows with data
  */
-ListActions.getShownRows = function(currentSheet) {
+ListActions.getDataRows = function(currentSheet) {
+  return ListActions.getDataRange(currentSheet).getValues();
+}
+
+/**
+ * Get all rows with data
+ */
+ListActions.getDataRange = function(currentSheet) {
   var startRow = 1;
   var startCol = 1;
   var numOfRows = currentSheet.getDataRange().getLastRow();
   var numOfCols = 1;
   
-  var shownRange = currentSheet.getRange(startRow, startCol, numOfRows, numOfCols);
-  
-  return shownRange.getValues();
+  return currentSheet.getRange(startRow, startCol, numOfRows, numOfCols);
 }
 
 /**
@@ -198,6 +223,37 @@ ListActions.getNumberOfShownRows = function(allShownRows) {
   }
 
   return count;
+}
+
+/**
+ * Raising edit event for each list item
+ */
+ListActions.validateAllRows = function() {
+  var defaultValue = 'Show';
+  var currentSheet = SpreadsheetApp.getActiveSheet();
+  var currentCell = currentSheet.getActiveCell();
+  
+  // set default value again
+  currentCell.setValue([defaultValue]);
+  
+  var values = ListActions.getDataRange(currentSheet);
+  
+  for(var row = 1; row < values.getNumRows(); row++) { 
+    for(var col = 1; col <= values.getNumColumns(); col++) {
+      var cell = values.getCell(row, col);
+      
+      currentSheet.setActiveRange(cell);
+
+      //Raise an event
+      ListActions.editEvent({
+        user : "",
+        source : SpreadsheetApp.getActiveSpreadsheet(),
+        range : cell,
+        value : cell.getValue(),
+        authMode : ""
+      });
+    }
+  }
 }
 
 
@@ -292,5 +348,9 @@ function test_edit_event_bottom() {
     value : "Bottom",
     authMode : ""
   });
+}
+
+function test_validate_all_rows() {
+  ListActions.validateAllRows();
 }
 
