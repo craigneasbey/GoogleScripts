@@ -1,5 +1,5 @@
 /**
- * V1.1.0
+ * V1.1.1
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -12,7 +12,7 @@ var Updated = {};
 
 // create local configuration object
 Updated.Config = {};
-Updated.Config.TESTING = true;
+Updated.Config.TESTING = false;
 Logger.log("Updated configuration loaded");
 
 /**
