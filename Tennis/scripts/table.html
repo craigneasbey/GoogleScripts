@@ -2,7 +2,7 @@
 <html>
   <head>
     <base target="_top">
-    <!-- V1.1.0 -->
+    <!-- V1.1.1 -->
   </head>
   <body>
     <table cellspacing=0 cellpadding=5 style="border-left: 1px solid #000; border-top:1px solid #000; border-bottom: 1px solid #000; margin-bottom: 20px">
@@ -10,9 +10,11 @@
         <tr style="border-bottom:1px solid #000;">
           <? for (var j = 0; j < data[i].length; j++) { ?>
             <? if (i === 0) { // first header row ?>
-              <td style="font-weight: bold; border-right: 1px solid #000; border-bottom:2px solid #000;"><?= data[i][j] ?></td>
+              <td style="font-weight: bold; border-right: 1px solid #000; border-bottom:1px solid #000;"><?= data[i][j] ?></td>
+            <? } else if  (i === 1){ // first row ?>
+              <td style="background-color: <?= data[i][j] === "Play" ? "#007F11" : "#737F77" ?>; color: <?= data[i][j] === "Play" ? "#A3FFB0" : "#E6FFEE" ?>; font-weight: bold; border-top:1px solid #000; border-right:1px solid #000;"><?= data[i][j] ?></td>
             <? } else { ?>
-              <td style="background-color: <?= data[i][j] === "Play" ? "lightgreen" : "lightgray" ?>; border-right:1px solid #000;"><?= data[i][j] ?></td>
+              <td style="background-color: <?= data[i][j] === "Play" ? "#d3f8d3" : "#e6e6e6" ?>; border-top:1px solid #000; border-right:1px solid #000;"><?= data[i][j] ?></td>
             <? } ?>
           <? } ?>
         </tr>

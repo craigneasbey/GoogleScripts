@@ -1,5 +1,5 @@
 /**
- * V1.1.1
+ * V1.1.2
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -48,7 +48,7 @@ Reminder.checkReminder = function() {
           recipients = [Session.getActiveUser().getEmail()];
         }
         
-        message += Notification.createHTMLTable(Reminder.getCurrentWeekWithHeader());
+        message += Notification.createHTMLTable(Reminder.getPreviewWithHeader(Global().REMINDER_PREVIEW_WEEKS));
         
         Notification.sendEmail(recipients, subject, message);
         
@@ -191,25 +191,33 @@ Reminder.enabledReminderMemberColumns = function(memberRosteredColumns, memberRe
 }
 
 /**
- * Get the member names row and current week row
+ * Get the member names row and preview rows
  */
-Reminder.getCurrentWeekWithHeader = function() {
-  var currentWeek = new Array();
+Reminder.getPreviewWithHeader = function(numOfRows) {
+  var preview = new Array();
   
   // get member names row as header
   var currentSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   var rosterSheet = currentSpreadsheet.getSheetByName(Global().ROSTER_SHEET_NAME);
   var names = Refresh.getMemberNames(rosterSheet);
   names.unshift(""); // add a empty string to the front of the array for display
-  currentWeek.push(names);
+  preview.push(names);
   
-  // get current week row
-  var currentWeekRow = Reminder.getCurrentWeek(new Date());
-  // change date to date stamp string
-  currentWeekRow[Global().DATE_COLUMN - 1] = DateUtils.formatDateDD_MON_YYYY(currentWeekRow[Global().DATE_COLUMN - 1]);
-  currentWeek.push(currentWeekRow);
+  // get preview rows
+  var previewRow = null;
+  var week = 0;
   
-  return currentWeek;
+  for(var i = 0; i < numOfRows; i++) {
+    previewRow = Reminder.getCurrentWeek(DateUtils.addDays(new Date(), week));
+    // change date to date stamp string
+    previewRow[Global().DATE_COLUMN - 1] = DateUtils.formatDateDD_MON_YYYY(previewRow[Global().DATE_COLUMN - 1]);
+    preview.push(previewRow);
+    
+    // add a week of 7 days
+    week += 7;
+  }
+  
+  return preview;
 }
 
 /**
@@ -330,7 +338,7 @@ function test_manual_reminder_suite() {
   test_get_reminder_member_columns();
   test_get_rostered_member_columns();
   test_enabled_reminder_member_columns();
-  test_get_current_week_with_header();
+  test_get_preview_with_header();
   test_setReminder();
   test_isRemindered();
   test_isReminderRequired();
@@ -342,13 +350,13 @@ function test_manual_reminder_suite() {
   Reminder.Config.TESTING = false;
 }
 
-function test_get_current_week_with_header() {
-  var actualArray = Reminder.getCurrentWeekWithHeader();
+function test_get_preview_with_header() {
+  var actualArray = Reminder.getPreviewWithHeader(2);
   
-  GSUnit.assertTrue('Current week with header size', actualArray.length === 2);
-  GSUnit.assertTrue('Current week with header names size', actualArray[0].length === 7);
-  GSUnit.assertTrue('Current week with header names first blank', isEmptyStr(actualArray[0][0]));
-  GSUnit.assertTrue('Current week with header roster size', actualArray[1].length === 7);
+  GSUnit.assertTrue('Preview with header size', actualArray.length === 3);
+  GSUnit.assertTrue('Preview with header names size', actualArray[0].length === 7);
+  GSUnit.assertTrue('Preview with header names first blank', isEmptyStr(actualArray[0][0]));
+  GSUnit.assertTrue('Preview week with header roster size', actualArray[1].length === 7);
 }
 
 function test_setReminder() {
@@ -435,4 +443,3 @@ function test_isReminderRequired() {
 function test_checkReminder() {
   Reminder.checkReminder();
 }
-
