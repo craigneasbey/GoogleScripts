@@ -1,5 +1,5 @@
 /**
- * V1.1.1
+ * V1.1.2
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -30,6 +30,13 @@ DateUtils.createUTCDate = function(year, month, day, hour, minute, second) {
   d.setTime(d.getTime() - d.getTimezoneOffset() * DateUtils.ONE_MINUTE_MS);
   
   return d;
+}
+
+DateUtils.addDays = function(date, days) {
+  var result = new Date(date);
+  result.setDate(result.getDate() + days);
+  
+  return result;
 }
 
 DateUtils.parseDate = function(str) {
