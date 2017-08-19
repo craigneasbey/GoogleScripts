@@ -1,5 +1,5 @@
 /**
- * V1.1.1
+ * V1.1.2
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -111,8 +111,10 @@ Notification.sendEmail = function(recipients, subject, message) {
 /**
  * Create a HTML table from an array
  */
-Notification.createHTMLTable = function(sourceArray) {
-  var htmlObject = HtmlService.createTemplateFromFile('table.html');
+Notification.createHTMLTable = function(sourceArray, templateFile) {
+  templateFile = defaultFor(templateFile, 'table.html');
+	
+  var htmlObject = HtmlService.createTemplateFromFile(templateFile);
   htmlObject.data = sourceArray;
   
   return htmlObject.evaluate().setSandboxMode(HtmlService.SandboxMode.IFRAME).getContent();
@@ -182,7 +184,7 @@ function test_create_HTML_table() {
   var testArray = new Array();
   testArray[0] = new Array("","Bob","John","Paul","Peter","David","Jerry");
   testArray[1] = new Array("22 Jul 2016","Play","CBA","Play","NA","Play","Play");
-  var expected = '<!DOCTYPE html> <html> <head> <base target="_top"> </head> <body> <table cellspacing="0" cellpadding="5" style="border-left: 1px solid #000; border-top:1px solid #000; border-bottom: ...';
+  var expected = '<!DOCTYPE html> <html> <head> <base target="_top"> </head> <body> <table cellspacing="0" cellpadding="5" style="border-left: 1px solid #000; border-top:1px solid #000; border-bottom: 1px solid #000; margin-bottom: 20px"> <tr style="border-bottom:1px solid #000;"> <td style="font-weight: bold; border-right: 1px solid #000; border-bottom:1px solid #000;"></td> <td style="font-weight: bold; border-right: 1px solid #000; border-bottom:1px solid #000;">Bob</td> <td style="font-weight: bold; border-right: 1px solid #000; border-bottom:1px solid #000;">John</td> <td style="font-weight: bold; border-right: 1px solid #000; border-bottom:1px solid #000;">Paul</td> <td style="font-weight: bold; border-right: 1px solid #000; border-bottom:1px solid #000;">Peter</td> <td style="font-weight: bold; border-right: 1px solid #000; border-bottom:1px solid #000;">David</td> <td style="font-weight: bold; border-right: 1px solid #000; border-bottom:1px solid #000;">Jerry</td> </tr> <tr style="border-bottom:1px solid #000;"> <td style="background-color: #737F77; color: #E6FFEE; font-weight: bold; border-top:1px solid #000; border-right:1px solid #000;">22 Jul 2016</td> <td style="background-color: #007F11; color: #A3FFB0; font-weight: bold; border-top:1px solid #000; border-right:1px solid #000;">Play</td> <td style="background-color: #737F77; color: #E6FFEE; font-weight: bold; border-top:1px solid #000; border-right:1px solid #000;">CBA</td> <td style="background-color: #007F11; color: #A3FFB0; font-weight: bold; border-top:1px solid #000; border-right:1px solid #000;">Play</td> <td style="background-color: #737F77; color: #E6FFEE; font-weight: bold; border-top:1px solid #000; border-right:1px solid #000;">NA</td> <td style="background-color: #007F11; color: #A3FFB0; font-weight: bold; border-top:1px solid #000; border-right:1px solid #000;">Play</td> <td style="background-color: #007F11; color: #A3FFB0; font-weight: bold; border-top:1px solid #000; border-right:1px solid #000;">Play</td> </tr> </table> </body> </html>';
   
   var actual = Notification.createHTMLTable(testArray);
   

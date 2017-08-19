@@ -1,5 +1,5 @@
 /**
- * V1.1.2
+ * V1.1.3
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -197,11 +197,7 @@ Reminder.getPreviewWithHeader = function(numOfRows) {
   var preview = new Array();
   
   // get member names row as header
-  var currentSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  var rosterSheet = currentSpreadsheet.getSheetByName(Global().ROSTER_SHEET_NAME);
-  var names = Refresh.getMemberNames(rosterSheet);
-  names.unshift(""); // add a empty string to the front of the array for display
-  preview.push(names);
+  preview.push(Reminder.getHeader());
   
   // get preview rows
   var previewRow = null;
@@ -218,6 +214,19 @@ Reminder.getPreviewWithHeader = function(numOfRows) {
   }
   
   return preview;
+}
+
+/**
+ * Get member names row as header
+ */
+Reminder.getHeader = function() {
+  var currentSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  var rosterSheet = currentSpreadsheet.getSheetByName(Global().ROSTER_SHEET_NAME);
+  var names = Refresh.getMemberNames(rosterSheet);
+  // add a empty string to the front of the array for display
+  names.unshift("");
+  
+  return names;
 }
 
 /**

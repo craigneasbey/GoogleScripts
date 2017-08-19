@@ -1,5 +1,5 @@
 /**
- * V1.1.1
+ * V1.1.2
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -23,10 +23,38 @@ Updated.checkUpdated = function() {
   var result = Updated.checkUpdatedNotificationRequired(now);
   
   if(result) {
+  	var recipients = Notification.getMemberEmails();
     var subject = Global().UPDATED_SUBJECT;
     var message = Global().UPDATED_MESSAGE;
     
-    Notification.emailMembers(subject, message);
+    if(Updated.Config.TESTING) {
+      message += '<div style="margin-top: 20px; margin-bottom: 20px;">recipients: ' + recipients + '</div>';
+      recipients = [Session.getActiveUser().getEmail()];
+    }
+    
+    var errorWeeks = Validation.checkValidation();
+    
+    // if array has any weeks
+    if(errorWeeks.length > 0) {
+      var preview = new Array();
+  
+      // get member names row as header
+      preview.push(Reminder.getHeader());
+      
+      // for each error week
+      for(var i = 0; i < errorWeeks.length; i++) {
+        // change date to date stamp string
+        errorWeeks[i][Global().DATE_COLUMN - 1] = DateUtils.formatDateDD_MON_YYYY(errorWeeks[i][Global().DATE_COLUMN - 1]);
+         // add error week
+        preview.push(errorWeeks[i]);
+      }
+      
+      // email invalid rows
+      message += Global().UPDATED_INVALID_MESSAGE;
+      message += Notification.createHTMLTable(preview);
+    }
+    
+    Notification.sendEmail(recipients, subject, message);
     
     // reset updated
     Updated.setUpdated('');

@@ -1,5 +1,5 @@
 /**
- * V1.2.3
+ * V1.2.4
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -224,6 +224,7 @@ function test_master_suite() {
   test_allocate_suite();
   test_refresh_suite();
   test_reminder_suite();
+  test_validation_suite();
   test_load_config_suite();
   test_string_suite();
   test_array_suite();
