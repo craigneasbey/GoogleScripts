@@ -1,5 +1,5 @@
 /**
- * V1.3.0
+ * V1.3.1
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -72,7 +72,7 @@ function test_profiler() {
   profiler.log("3");
   profiler.logTotal();
   
-  GSUnit.assertEquals('Profilers array is size', 2, profiler.length());
+  assertEquals('Profilers array is size', 2, profiler.length());
   
   profiler = new Profiler("Test");
   profiler.enabled = false;
@@ -81,6 +81,5 @@ function test_profiler() {
   profiler.log("3");
   profiler.logTotal();
   
-  GSUnit.assertEquals('Profilers array is size', 0, profiler.length());
+  assertEquals('Profilers array is size', 0, profiler.length());
 }
-

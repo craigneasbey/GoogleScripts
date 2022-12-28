@@ -1,5 +1,5 @@
 /**
- * V1.1.1
+ * V1.1.2
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -155,7 +155,7 @@ function test_get_content_columns() {
   
   var actual = Refresh.getContentColumns(testArray);
   
-  GSUnit.assertArrayEquals('Content Columns Empty', expected, actual);
+  assertArrayEquals('Content Columns Empty', expected, actual);
   
   testArray = new Array();
   testArray[0] = new Array("Test",null, null);
@@ -163,7 +163,7 @@ function test_get_content_columns() {
   
   actual = Refresh.getContentColumns(testArray);
   
-  GSUnit.assertArrayEquals('Content Columns Null', expected, actual);
+  assertArrayEquals('Content Columns Null', expected, actual);
   
   testArray = new Array();
   testArray[0] = "Test";
@@ -171,7 +171,7 @@ function test_get_content_columns() {
   
   actual = Refresh.getContentColumns(testArray);
   
-  GSUnit.assertArrayEquals('Content Columns No Array', expected, actual);
+  assertArrayEquals('Content Columns No Array', expected, actual);
 }
 
 
@@ -189,21 +189,21 @@ function test_find_current_week_index() {
   var expected = 3;
   var actual = Refresh.findCurrentWeekIndex(testArray, testDate);
   
-  GSUnit.assert('Current week on day exact', actual === expected);
+  assert('Current week on day exact', actual === expected);
     
   testDate = DateUtils.createLocalDate(2016, 2, 23, 11, 0, 0);
   
   expected = 3;
   actual = Refresh.findCurrentWeekIndex(testArray, testDate);
   
-  GSUnit.assert('Current week on day', actual === expected);
+  assert('Current week on day', actual === expected);
   
   testDate = DateUtils.createLocalDate(2016, 2, 19, 0, 0, 0);
   
   expected = 3;
   actual = Refresh.findCurrentWeekIndex(testArray, testDate);
   
-  GSUnit.assert('Current week off day', actual === expected);
+  assert('Current week off day', actual === expected);
 }
 
 
@@ -215,4 +215,3 @@ function test_refreshCurrentWeek() {
   //Refresh.refreshCurrentWeek(DateUtils.createLocalDate(2016, 8, 23, 0, 0, 0));
   //Refresh.refreshCurrentWeek(DateUtils.createLocalDate(2016, 1, 4, 0, 0, 0));
 }
-

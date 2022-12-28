@@ -1,5 +1,5 @@
 /**
- * V1.1.2
+ * V1.1.3
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -442,9 +442,9 @@ function test_clone_rotate_array() {
   
   testArray.pop();
   
-  Logger.log(GSUnit.assertArrayEquals('Clone rotate confirm original test array changed', expectedTestArray, testArray));
+  Logger.log(assertArrayEquals('Clone rotate confirm original test array changed', expectedTestArray, testArray));
   
-  Logger.log(GSUnit.assertArrayEquals('Cloned and rotated array', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Cloned and rotated array', expectedArray, actualArray));
 }
 
 function test_array_rotate_one_dimension() {
@@ -457,7 +457,7 @@ function test_array_rotate_one_dimension() {
   
   ArrayUtils.arrayRotateOneDimension(actualArray, -90); // rotate left
 
-  Logger.log(GSUnit.assertArrayEquals('Rotated horizontal one dimensional array', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Rotated horizontal one dimensional array', expectedArray, actualArray));
   
   actualArray = new Array();
   actualArray[0] = new Array("CBA");
@@ -468,7 +468,7 @@ function test_array_rotate_one_dimension() {
   
   ArrayUtils.arrayRotateOneDimension(actualArray, -90);// rotate left
 
-  Logger.log(GSUnit.assertArrayEquals('Rotated vertical one dimensional array', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Rotated vertical one dimensional array', expectedArray, actualArray));
 }
 
 function test_array_rotate_right() {
@@ -483,7 +483,7 @@ function test_array_rotate_right() {
   
   ArrayUtils.arrayRotateRight(actualArray);
 
-  Logger.log(GSUnit.assertArrayEquals('Rotated array right', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Rotated array right', expectedArray, actualArray));
 }
 
 function test_array_rotate_right_one_dimension() {
@@ -496,7 +496,7 @@ function test_array_rotate_right_one_dimension() {
   
   ArrayUtils.arrayRotateOneDimensionRight(actualArray);
 
-  Logger.log(GSUnit.assertArrayEquals('Rotated horizontal one dimensional array right', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Rotated horizontal one dimensional array right', expectedArray, actualArray));
   
   actualArray = new Array();
   actualArray[0] = new Array("CBA");
@@ -507,7 +507,7 @@ function test_array_rotate_right_one_dimension() {
   
   ArrayUtils.arrayRotateOneDimensionRight(actualArray);
 
-  Logger.log(GSUnit.assertArrayEquals('Rotated vertical one dimensional array right', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Rotated vertical one dimensional array right', expectedArray, actualArray));
 }
 
 function test_rotate_3_by_2_array_clockwise() {
@@ -523,7 +523,7 @@ function test_rotate_3_by_2_array_clockwise() {
   
   var actualArray = ArrayUtils.arrayRotate(testArray, 90);
   
-  Logger.log(GSUnit.assertArrayEquals('Rotate 3 by 2 array clockwise', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Rotate 3 by 2 array clockwise', expectedArray, actualArray));
 }
 
 function test_rotate_2_by_3_array_clockwise() {
@@ -539,7 +539,7 @@ function test_rotate_2_by_3_array_clockwise() {
 
   var actualArray = ArrayUtils.arrayRotate(testArray, 90);
 
-  Logger.log(GSUnit.assertArrayEquals('Rotate 2 by 3 array clockwise', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Rotate 2 by 3 array clockwise', expectedArray, actualArray));
 }
 
 function test_rotate_2_by_3_array_clockwise_back() {
@@ -555,7 +555,7 @@ function test_rotate_2_by_3_array_clockwise_back() {
   testArray = ArrayUtils.arrayRotate(testArray, 90);
   var actualArray = ArrayUtils.arrayRotate(testArray, -90);
 
-  Logger.log(GSUnit.assertArrayEquals('Rotate 2 by 3 array clockwise', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Rotate 2 by 3 array clockwise', expectedArray, actualArray));
 }
 
 function test_rotate_2_by_3_array_clockwise_back_clockwise() {
@@ -573,7 +573,7 @@ function test_rotate_2_by_3_array_clockwise_back_clockwise() {
   testArray = ArrayUtils.arrayRotate(testArray, -90);
   testArray = ArrayUtils.arrayRotate(testArray, 90);
 
-  Logger.log(GSUnit.assertArrayEquals('Rotate 2 by 3 array clockwise', expectedArray, testArray));
+  Logger.log(assertArrayEquals('Rotate 2 by 3 array clockwise', expectedArray, testArray));
 }
 
 function test_rotate_2_by_3_array_counter_clockwise() {
@@ -589,7 +589,7 @@ function test_rotate_2_by_3_array_counter_clockwise() {
 
   var actualArray = ArrayUtils.arrayRotate(testArray, -90);
   
-  Logger.log(GSUnit.assertArrayEquals('Rotate 2 by 3 array counter clockwise', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Rotate 2 by 3 array counter clockwise', expectedArray, actualArray));
 }
 
 function test_rotate_2_by_6_array_clockwise() {
@@ -608,7 +608,7 @@ function test_rotate_2_by_6_array_clockwise() {
 
   var actualArray = ArrayUtils.arrayRotate(testArray, 90);
 
-  Logger.log(GSUnit.assertArrayEquals('Rotate 2 by 6 array clockwise', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Rotate 2 by 6 array clockwise', expectedArray, actualArray));
 }
 
 function test_rotate_empty_2_by_6_array_clockwise() {
@@ -627,7 +627,7 @@ function test_rotate_empty_2_by_6_array_clockwise() {
 
   var actualArray = ArrayUtils.arrayRotate(testArray, 90);
 
-  Logger.log(GSUnit.assertArrayEquals('Rotate 2 by 6 array clockwise', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Rotate 2 by 6 array clockwise', expectedArray, actualArray));
 }
 
 function test_rotate_4_by_10_array_clockwise() {
@@ -652,7 +652,7 @@ function test_rotate_4_by_10_array_clockwise() {
   
   var actualArray = ArrayUtils.arrayRotate(testArray, 90);
 
-  Logger.log(GSUnit.assertArrayEquals('Rotate 4 by 10 array clockwise', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Rotate 4 by 10 array clockwise', expectedArray, actualArray));
 }
 
 function test_expand_array() {
@@ -668,7 +668,7 @@ function test_expand_array() {
   
   var actualArray = ArrayUtils.expandArray(testArray);
   
-  Logger.log(GSUnit.assertArrayEquals('Expand array height', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Expand array height', expectedArray, actualArray));
   
   testArray = new Array();
   testArray[0] = new Array("CBA","Play");
@@ -684,7 +684,7 @@ function test_expand_array() {
   
   actualArray = ArrayUtils.expandArray(testArray);
   
-  Logger.log(GSUnit.assertArrayEquals('Expand array width', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Expand array width', expectedArray, actualArray));
   
   testArray = new Array("","","","");
   
@@ -696,7 +696,7 @@ function test_expand_array() {
   
   actualArray = ArrayUtils.expandArray(testArray);
   
-  Logger.log(GSUnit.assertArrayEquals('Expand empty array to two dimensions', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Expand empty array to two dimensions', expectedArray, actualArray));
 
   testArray = new Array("CBA","Play","NA");
   
@@ -707,7 +707,7 @@ function test_expand_array() {
   
   actualArray = ArrayUtils.expandArray(testArray);
   
-  Logger.log(GSUnit.assertArrayEquals('Expand array to two dimensions', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Expand array to two dimensions', expectedArray, actualArray));
 }
 
 function test_compress_array() {
@@ -723,7 +723,7 @@ function test_compress_array() {
   
   var actualArray = ArrayUtils.compressArray(testArray);
   
-  Logger.log(GSUnit.assertArrayEquals('Compress array', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Compress array', expectedArray, actualArray));
   
   testArray = new Array();
   testArray[0] = new Array("CBA","Play","",null);
@@ -738,7 +738,7 @@ function test_compress_array() {
   
   actualArray = ArrayUtils.compressArray(testArray);
   
-  Logger.log(GSUnit.assertArrayEquals('Compress array with empty values on bottom and right', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Compress array with empty values on bottom and right', expectedArray, actualArray));
   
   testArray = new Array();
   testArray[0] = new Array(null,null,null,null);
@@ -751,7 +751,7 @@ function test_compress_array() {
   
   actualArray = ArrayUtils.compressArray(testArray);
   
-  Logger.log(GSUnit.assertArrayEquals('Compress array with empty values on top and right', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Compress array with empty values on top and right', expectedArray, actualArray));
 
   testArray = new Array();
   testArray[0] = new Array(null,"CBA","Play");
@@ -763,7 +763,7 @@ function test_compress_array() {
   
   actualArray = ArrayUtils.compressArray(testArray);
   
-  Logger.log(GSUnit.assertArrayEquals('Compress array with empty values on left', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Compress array with empty values on left', expectedArray, actualArray));
   
   testArray = new Array();
   testArray[0] = new Array(null,"CBA","Play");
@@ -777,7 +777,7 @@ function test_compress_array() {
   
   actualArray = ArrayUtils.compressArray(testArray);
   
-  Logger.log(GSUnit.assertArrayEquals('Compress array with empty values in the middle and left', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Compress array with empty values in the middle and left', expectedArray, actualArray));
   
   testArray = new Array();
   testArray[0] = new Array("","CBA","");
@@ -791,7 +791,7 @@ function test_compress_array() {
   
   actualArray = ArrayUtils.compressArray(testArray);
   
-  Logger.log(GSUnit.assertArrayEquals('Compress array with empty values in all around', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Compress array with empty values in all around', expectedArray, actualArray));
 }
 
 function test_convert_to_array_of_arrays() {
@@ -801,7 +801,7 @@ function test_convert_to_array_of_arrays() {
 
   var actualArray = ArrayUtils.convertToArrayOfArrays(testArray);
 
-  Logger.log(GSUnit.assertArrayEquals('Convert array to array of arrays', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Convert array to array of arrays', expectedArray, actualArray));
 }
 
 function test_convert_to_array() {
@@ -811,7 +811,7 @@ function test_convert_to_array() {
 
   var actualArray = ArrayUtils.convertToArray(testArray);
 
-  Logger.log(GSUnit.assertArrayEquals('Convert horizontal two dimensional array to one dimensional array', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Convert horizontal two dimensional array to one dimensional array', expectedArray, actualArray));
   
   testArray = new Array(); // [["Play"],["NA"],["CBA"]]
   testArray[0] = new Array("Play");
@@ -825,7 +825,7 @@ function test_convert_to_array() {
 
   actualArray = ArrayUtils.convertToArray(testArray);
 
-  Logger.log(GSUnit.assertArrayEquals('Do not convert vertical two dimensional array to one dimensional array, cannot be done', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Do not convert vertical two dimensional array to one dimensional array, cannot be done', expectedArray, actualArray));
 }
 
 function test_copy_array() {
@@ -847,13 +847,13 @@ function test_copy_array() {
 
   ArrayUtils.arrayCopy(testArray, actualArray);
   
-  Logger.log(GSUnit.assertArrayEquals('Copy to larger array', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Copy to larger array', expectedArray, actualArray));
   
   actualArray = new Array();
   
   ArrayUtils.arrayCopy(testArray, actualArray);
   
-  Logger.log(GSUnit.assertArrayEquals('Copy to empty array', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Copy to empty array', expectedArray, actualArray));
   
   actualArray = new Array();
   actualArray[0] = new Array(null);
@@ -861,7 +861,7 @@ function test_copy_array() {
   
   ArrayUtils.arrayCopy(testArray, actualArray);
   
-  Logger.log(GSUnit.assertArrayEquals('Copy to smaller array', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Copy to smaller array', expectedArray, actualArray));
 }
 
 function test_clone_array() {
@@ -883,9 +883,9 @@ function test_clone_array() {
   expectedTestArray[0] = new Array("NA");
   expectedTestArray[2] = new Array("CBA","CBA");
   
-  Logger.log(GSUnit.assertArrayEquals('Confirm original test array changed', expectedTestArray, testArray));
+  Logger.log(assertArrayEquals('Confirm original test array changed', expectedTestArray, testArray));
 
-  Logger.log(GSUnit.assertArrayEquals('Cloned array unchanged', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Cloned array unchanged', expectedArray, actualArray));
 }
 
 function test_array_max_width() {
@@ -897,6 +897,5 @@ function test_array_max_width() {
   
   var actual = ArrayUtils.arrayMaxWidth(testArray);
   
-  Logger.log(GSUnit.assertEquals("Max width", expect, actual));
+  Logger.log(assertEquals("Max width", expect, actual));
 }
-

@@ -1,5 +1,5 @@
 /**
- * V1.3.1
+ * V1.3.2
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -178,8 +178,8 @@ function test_best_allocate_selected_members() {
   var updated = BestAllocateMembers.bestAllocateSelectedMembers(weeksArray, historyArray);
   var actualArray = weeksArray;
   
-  Logger.log(GSUnit.assertTrue('Best allocate selected members updated', updated));
-  Logger.log(GSUnit.assertArrayEquals('Best allocate selected members rostered array', expectedArray, actualArray));
+  Logger.log(assertTrue('Best allocate selected members updated', updated));
+  Logger.log(assertArrayEquals('Best allocate selected members rostered array', expectedArray, actualArray));
 }
 
 function test_get_ideal_score() {
@@ -190,7 +190,7 @@ function test_get_ideal_score() {
   
   var actualScore = BestAllocateMembers.getIdealScore(max, size, weeks);
   
-  Logger.log(GSUnit.assertTrue("Ideal score max 1, size 3, weeks 2", DateUtils.equalWithinTolerance(expectedScore, actualScore, 0.05)));
+  Logger.log(assertTrue("Ideal score max 1, size 3, weeks 2", DateUtils.equalWithinTolerance(expectedScore, actualScore, 0.05)));
   
   max = 2
   size = 3;
@@ -199,7 +199,7 @@ function test_get_ideal_score() {
   
   actualScore = BestAllocateMembers.getIdealScore(max, size, weeks);
   
-  Logger.log(GSUnit.assertTrue("Ideal score max 2, size 3, weeks 3", DateUtils.equalWithinTolerance(expectedScore, actualScore, 0.05)));
+  Logger.log(assertTrue("Ideal score max 2, size 3, weeks 3", DateUtils.equalWithinTolerance(expectedScore, actualScore, 0.05)));
 
   max = 4
   size = 6;
@@ -208,7 +208,7 @@ function test_get_ideal_score() {
   
   actualScore = BestAllocateMembers.getIdealScore(max, size, weeks);
   
-  Logger.log(GSUnit.assertTrue("Ideal score max 4, size 6, weeks 11", DateUtils.equalWithinTolerance(expectedScore, actualScore, 0.05)));
+  Logger.log(assertTrue("Ideal score max 4, size 6, weeks 11", DateUtils.equalWithinTolerance(expectedScore, actualScore, 0.05)));
 }
 
 function test_get_score() {
@@ -223,7 +223,7 @@ function test_get_score() {
   
   var actual = BestAllocateMembers.getScore(testArray, expected.maxWeeksRostered, expected.maxWeeksRest, expected.start, idealScore);
   
-  Logger.log(GSUnit.assertObjectEquals("Get score for allocation three members", expected, actual));
+  Logger.log(assertObjectEquals("Get score for allocation three members", expected, actual));
   
   testArray = new Array();                          
   testArray[0] = new Array("CBA","Play","CBA","Play","NA","Play","Play","CBA","CBA","CBA");
@@ -237,7 +237,7 @@ function test_get_score() {
   
   actual = BestAllocateMembers.getScore(testArray, expected.maxWeeksRostered, expected.maxWeeksRest, expected.start, idealScore);
   
-  Logger.log(GSUnit.assertObjectEquals("Get score for allocation ten members", expected, actual));
+  Logger.log(assertObjectEquals("Get score for allocation ten members", expected, actual));
 }
 
 function test_get_absolute_difference() {
@@ -247,7 +247,7 @@ function test_get_absolute_difference() {
   
   var actual = BestAllocateMembers.getAbsoluteDifference(first, second);
   
-  Logger.log(GSUnit.assertTrue("Absolute difference of 0.3333 and -3", DateUtils.equalWithinTolerance(expected, actual, 0.05)));
+  Logger.log(assertTrue("Absolute difference of 0.3333 and -3", DateUtils.equalWithinTolerance(expected, actual, 0.05)));
   
   first = 1.8;
   second = 0.5;
@@ -255,7 +255,7 @@ function test_get_absolute_difference() {
   
   actual = BestAllocateMembers.getAbsoluteDifference(first, second);
   
-  Logger.log(GSUnit.assertTrue("Absolute difference of 1.8 and 0.5", DateUtils.equalWithinTolerance(expected, actual, 0.05)));
+  Logger.log(assertTrue("Absolute difference of 1.8 and 0.5", DateUtils.equalWithinTolerance(expected, actual, 0.05)));
 }
 
 function test_get_best_score() {
@@ -265,7 +265,7 @@ function test_get_best_score() {
   
   var actual = BestAllocateMembers.getBestScore(currentScore, bestScore);
   
-  Logger.log(GSUnit.assertObjectEquals("Best score 1.2 and 2.66", expected, actual));
+  Logger.log(assertObjectEquals("Best score 1.2 and 2.66", expected, actual));
   
   currentScore = { "score" : 2.33, "maxWeeksRostered" : 1, "maxWeeksRest" : 3, "start" : 1 };
   bestScore = { "score" : 0.5, "maxWeeksRostered" : 4, "maxWeeksRest" : 2, "start" : 0 };
@@ -273,6 +273,5 @@ function test_get_best_score() {
   
   actual = BestAllocateMembers.getBestScore(currentScore, bestScore);
   
-  Logger.log(GSUnit.assertObjectEquals("Best score 2.33 and 0.5", expected, actual));
+  Logger.log(assertObjectEquals("Best score 2.33 and 0.5", expected, actual));
 }
-

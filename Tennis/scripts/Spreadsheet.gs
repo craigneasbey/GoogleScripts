@@ -57,4 +57,3 @@ function emailMembersMessage() {
 function removePastWeeks() {
   Roster.removePastWeeks();
 }
-

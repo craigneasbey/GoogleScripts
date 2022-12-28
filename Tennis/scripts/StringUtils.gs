@@ -1,5 +1,5 @@
 /**
- * V1.1.0
+ * V1.1.1
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -59,17 +59,17 @@ function test_string_suite() {
 }
 
 function test_isEmptyStr() {
-  Logger.log(GSUnit.assertEquals('No string ', true, isEmptyStr()));
-  Logger.log(GSUnit.assertEquals('Null string ', true, isEmptyStr(null)));
-  Logger.log(GSUnit.assertEquals('Empty string ', true, isEmptyStr("")));
-  Logger.log(GSUnit.assertEquals('Not Empty string ', false, isEmptyStr("test")));
+  Logger.log(assertEquals('No string ', true, isEmptyStr()));
+  Logger.log(assertEquals('Null string ', true, isEmptyStr(null)));
+  Logger.log(assertEquals('Empty string ', true, isEmptyStr("")));
+  Logger.log(assertEquals('Not Empty string ', false, isEmptyStr("test")));
 }
 
 function test_isEmpty() {
-  Logger.log(GSUnit.assertEquals('No string ', true, isEmpty()));
-  Logger.log(GSUnit.assertEquals('Null string ', true, isEmpty(null)));
-  Logger.log(GSUnit.assertEquals('Empty string ', false, isEmpty("")));
-  Logger.log(GSUnit.assertEquals('Not Empty string ', false, isEmpty("test")));
+  Logger.log(assertEquals('No string ', true, isEmpty()));
+  Logger.log(assertEquals('Null string ', true, isEmpty(null)));
+  Logger.log(assertEquals('Empty string ', false, isEmpty("")));
+  Logger.log(assertEquals('Not Empty string ', false, isEmpty("test")));
 }
 
 function test_defaultFor() { 
@@ -79,7 +79,7 @@ function test_defaultFor() {
    
   var actual = defaultFor(value, defaultValue);
   
-  Logger.log(GSUnit.assertEquals('Undefined', expected, actual));
+  Logger.log(assertEquals('Undefined', expected, actual));
   
   value = '';
   defaultValue = 'test defined';
@@ -87,7 +87,7 @@ function test_defaultFor() {
    
   actual = defaultFor(value, defaultValue);
   
-  Logger.log(GSUnit.assertEquals('Defined', expected, actual));
+  Logger.log(assertEquals('Defined', expected, actual));
   
   value = 'This is a test';
   defaultValue = 'test text';
@@ -95,6 +95,5 @@ function test_defaultFor() {
    
   actual = defaultFor(value, defaultValue);
   
-  Logger.log(GSUnit.assertEquals('This is a test', expected, actual));
+  Logger.log(assertEquals('This is a test', expected, actual));
 }
-

@@ -1,5 +1,5 @@
 /**
- * V1.1.2
+ * V1.1.3
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -187,7 +187,7 @@ function test_setUpdated() {
   Updated.setUpdated(expected);
   var actual = Updated.getUpdated();
 
-  GSUnit.assertEquals('Set Updated', expected, actual);
+  assertEquals('Set Updated', expected, actual);
   
   // reset cell
   Updated.setUpdated('');
@@ -199,14 +199,14 @@ function test_isUpdated() {
   Updated.setUpdated(testStr);
   var actual = Updated.isUpdated();
 
-  GSUnit.assertTrue('This is a test', actual);
+  assertTrue('This is a test', actual);
   
   // reset cell
   Updated.setUpdated('');
   
   actual = Updated.isUpdated();
 
-  GSUnit.assertFalse('Empty updated', actual);
+  assertFalse('Empty updated', actual);
 }
 
 function test_checkUpdatedNotificationRequired() {
@@ -216,20 +216,20 @@ function test_checkUpdatedNotificationRequired() {
   
   var actual = Updated.checkUpdatedNotificationRequired(now);
   
-  GSUnit.assertFalse('Within a date', actual);
+  assertFalse('Within a date', actual);
 
   testDate = new Date() - (DateUtils.ONE_DAY_MS + DateUtils.ONE_HOUR_MS);
   Updated.setUpdated(testDate.toString());
   
   actual = Updated.checkUpdatedNotificationRequired(now);
 
-  GSUnit.assertTrue('Older than a day', actual);
+  assertTrue('Older than a day', actual);
   
   Updated.setUpdated('');
   
   actual = Updated.checkUpdatedNotificationRequired(now);
 
-  GSUnit.assertFalse('Reset cell', actual);
+  assertFalse('Reset cell', actual);
 }
 
 function test_checkRosterUpdated() {
@@ -237,7 +237,7 @@ function test_checkRosterUpdated() {
   
   var actual = Updated.checkRosterUpdated(null);
 
-  GSUnit.assertNotEquals('Check updated', expected, actual);
+  assertNotEquals('Check updated', expected, actual);
 }
 
 function test_checkUpdated_NoEmail() {
@@ -245,7 +245,7 @@ function test_checkUpdated_NoEmail() {
   
   Updated.setUpdated(testDate.toString());
   
-  GSUnit.assertFalse('No email trigger updated', Updated.checkUpdated());
+  assertFalse('No email trigger updated', Updated.checkUpdated());
 }
 
 function test_checkUpdated_Email() {
@@ -253,6 +253,5 @@ function test_checkUpdated_Email() {
   
   Updated.setUpdated(testDate.toString());
   
-  GSUnit.assertTrue('Email trigger updated', Updated.checkUpdated());
+  assertTrue('Email trigger updated', Updated.checkUpdated());
 }
-

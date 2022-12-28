@@ -74,4 +74,3 @@ function triggerReminder() {
   Logger.log("triggerReminder function called");
   Reminder.checkReminder();
 }
-

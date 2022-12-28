@@ -240,4 +240,3 @@ function test_master_manual_suite() {
   test_manual_reminder_suite();
   test_manual_updated_suite();
 }
-

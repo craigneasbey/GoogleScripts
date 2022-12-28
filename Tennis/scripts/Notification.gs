@@ -143,12 +143,12 @@ function test_getMemberEmails() {
   
   var actualArray = Notification.getMemberEmails();
 
-  GSUnit.assertTrue('Member emails is array', Array.isArray(actualArray));  
-  GSUnit.assertTrue('Member emails has length', actualArray.length > expectedMinLength);
+  assertTrue('Member emails is array', Array.isArray(actualArray));  
+  assertTrue('Member emails has length', actualArray.length > expectedMinLength);
   
   for(var i=0; i < actualArray.length; i++) {
     var comment = 'Email ' + actualArray[i] + ' is not a valid email address';
-    GSUnit.assertTrue(comment, actualArray[i].indexOf('@') === -1 ? false : true);
+    assertTrue(comment, actualArray[i].indexOf('@') === -1 ? false : true);
   }
 }
 
@@ -157,12 +157,12 @@ function test_getIndividualMemberEmails() {
   
   var actualArray = Notification.getIndividualMemberEmails(new Array(1,4,5));
 
-  GSUnit.assertTrue('Individual member emails is array', Array.isArray(actualArray));  
-  GSUnit.assertTrue('Individual member emails has length', actualArray.length === expectedLength);
+  assertTrue('Individual member emails is array', Array.isArray(actualArray));  
+  assertTrue('Individual member emails has length', actualArray.length === expectedLength);
   
   for(var i=0; i < actualArray.length; i++) {
     var comment = 'Email ' + actualArray[i] + ' is not a valid email address';
-    GSUnit.assertTrue(comment, actualArray[i].indexOf('@') === -1 ? false : true);
+    assertTrue(comment, actualArray[i].indexOf('@') === -1 ? false : true);
   }
 }
 
@@ -188,6 +188,5 @@ function test_create_HTML_table() {
   
   var actual = Notification.createHTMLTable(testArray);
   
-  GSUnit.assertEquals('Create HTML table', expected, actual);
+  assertEquals('Create HTML table', expected, actual);
 }
-

@@ -187,7 +187,7 @@ function test_createLocalDate() {
   
   var actual = DateUtils.createLocalDate(2015, 12, 29, 0, 0, 0);
   
-  GSUnit.assertEquals('Equal local date', expected, actual.getTime());
+  assertEquals('Equal local date', expected, actual.getTime());
 }
 
 function test_createUTCDate() {
@@ -195,7 +195,7 @@ function test_createUTCDate() {
   
   var actual = DateUtils.createUTCDate(2015, 12, 29, 0, 0, 0);
   
-  GSUnit.assertEquals('Equal UTC date', expected.getTime(), actual.getTime());
+  assertEquals('Equal UTC date', expected.getTime(), actual.getTime());
 }
 
 function test_parseDate() {
@@ -205,7 +205,7 @@ function test_parseDate() {
 
   var actual = DateUtils.parseDate(testDateStr);
   
-  GSUnit.assert('Parse date', actual.getTime() === expected.getTime());
+  assert('Parse date', actual.getTime() === expected.getTime());
 }
 
 function test_compareDates() {
@@ -215,21 +215,21 @@ function test_compareDates() {
   var expected = 0;
   var actual = DateUtils.compareDates(testDate, now);
   
-  GSUnit.assert('Equal dates', actual === expected);
+  assert('Equal dates', actual === expected);
   
   testDate.setTime(testDate.getTime() + DateUtils.ONE_HOUR_MS);
   
   expected = 1;
   actual = DateUtils.compareDates(testDate, now);
   
-  GSUnit.assert('Greater than date', actual === expected);
+  assert('Greater than date', actual === expected);
 
   testDate.setTime(testDate.getTime() - DateUtils.ONE_HOUR_MS - DateUtils.ONE_HOUR_MS);
   
   expected = -1;
   actual = DateUtils.compareDates(testDate, now);
   
-  GSUnit.assert('Less than date', actual === expected);
+  assert('Less than date', actual === expected);
 }
 
 function test_compareDatesWithinTolerance() {
@@ -240,20 +240,20 @@ function test_compareDatesWithinTolerance() {
 
   var actual = DateUtils.compareDatesWithinTolerance(testData1, testData2, DateUtils.ONE_DAY_MS + DateUtils.ONE_DAY_MS);
   
-  GSUnit.assertEquals('Compare dates within 2 days', expected, actual);
+  assertEquals('Compare dates within 2 days', expected, actual);
   
   expected = -1;
 
   actual = DateUtils.compareDatesWithinTolerance(testData1, testData2, DateUtils.ONE_MINUTE_MS);
   
-  GSUnit.assertEquals('Compare dates not within 1 minute', expected, actual);
+  assertEquals('Compare dates not within 1 minute', expected, actual);
   
   expected = 0;
   testData2 = DateUtils.createLocalDate(2015, 12, 28, 11, 0, 0);
   
   actual = DateUtils.compareDatesWithinTolerance(testData1, testData2, DateUtils.ONE_DAY_MS);
   
-  GSUnit.assertEquals('Compare dates within 1 day', expected, actual);
+  assertEquals('Compare dates within 1 day', expected, actual);
 }
 
 function test_equalDatesWithinTolerance() {
@@ -262,17 +262,17 @@ function test_equalDatesWithinTolerance() {
 
   var actual = DateUtils.equalDatesWithinTolerance(testData1, testData2, DateUtils.ONE_DAY_MS + DateUtils.ONE_DAY_MS);
   
-  GSUnit.assertTrue('Dates equal within 2 days', actual);
+  assertTrue('Dates equal within 2 days', actual);
 
   actual = DateUtils.equalDatesWithinTolerance(testData1, testData2, DateUtils.ONE_MINUTE_MS);
   
-  GSUnit.assertFalse('Dates not equal within 1 minute', actual);
+  assertFalse('Dates not equal within 1 minute', actual);
   
   testData2 = DateUtils.createLocalDate(2015, 12, 28, 11, 0, 0);
   
   actual = DateUtils.equalDatesWithinTolerance(testData1, testData2, DateUtils.ONE_DAY_MS);
   
-  GSUnit.assertTrue('Dates equal within 1 day', actual);
+  assertTrue('Dates equal within 1 day', actual);
 }
 
 function test_equalWithinTolerance() {
@@ -282,12 +282,12 @@ function test_equalWithinTolerance() {
   var expected = false;
   var actual = DateUtils.equalWithinTolerance(testData1,testData2, 1);
   
-  GSUnit.assert('Equal 3 = 5, Tol 1', actual === expected);
+  assert('Equal 3 = 5, Tol 1', actual === expected);
 
   expected = true;
   actual = DateUtils.equalWithinTolerance(testData1,testData2, 2);
   
-  GSUnit.assert('Equal 3 = 5, Tol 2', actual === expected);
+  assert('Equal 3 = 5, Tol 2', actual === expected);
   
   testData1 = 100;
   testData2 = 71;
@@ -295,12 +295,12 @@ function test_equalWithinTolerance() {
   expected = true;
   actual = DateUtils.equalWithinTolerance(testData1,testData2, 30);
   
-  GSUnit.assert('Equal 100 = 71, Tol 30', actual === expected);
+  assert('Equal 100 = 71, Tol 30', actual === expected);
 
   expected = false;
   actual = DateUtils.equalWithinTolerance(testData1,testData2, 5);
   
-  GSUnit.assert('Equal 100 = 71, Tol 5', actual === expected);
+  assert('Equal 100 = 71, Tol 5', actual === expected);
 }
 
 function test_compareWithinTolerance() {
@@ -310,12 +310,12 @@ function test_compareWithinTolerance() {
   var expected = -1;
   var actual = DateUtils.compareWithinTolerance(testData1,testData2, 1);
   
-  GSUnit.assert('Compare 3 = 5, Tol 1', actual === expected);
+  assert('Compare 3 = 5, Tol 1', actual === expected);
 
   expected = 0;
   actual = DateUtils.compareWithinTolerance(testData1,testData2, 2);
   
-  GSUnit.assert('Compare 3 = 5, Tol 2', actual === expected);
+  assert('Compare 3 = 5, Tol 2', actual === expected);
   
   testData1 = 100;
   testData2 = 71;
@@ -323,12 +323,12 @@ function test_compareWithinTolerance() {
   expected = 0;
   actual = DateUtils.compareWithinTolerance(testData1,testData2, 30);
   
-  GSUnit.assert('Compare 100 = 71, Tol 30', actual === expected);
+  assert('Compare 100 = 71, Tol 30', actual === expected);
 
   expected = 1;
   actual = DateUtils.compareWithinTolerance(testData1,testData2, 5);
   
-  GSUnit.assert('Compare 100 = 71, Tol 5', actual === expected);
+  assert('Compare 100 = 71, Tol 5', actual === expected);
 }
 
 function test_day_of_week() {
@@ -344,7 +344,7 @@ function test_day_of_week() {
   
   var actualArray = DateUtils.getDays(month, year, dayOfWeek);
   
-  Logger.log(GSUnit.assertArrayEquals('Sundays in April 2016', DateUtils.convertToStamps(expectedArray), DateUtils.convertToStamps(actualArray)));
+  Logger.log(assertArrayEquals('Sundays in April 2016', DateUtils.convertToStamps(expectedArray), DateUtils.convertToStamps(actualArray)));
   
   dayOfWeek = 1;
   expectedArray = new Array();
@@ -355,7 +355,7 @@ function test_day_of_week() {
   
   actualArray = DateUtils.getDays(month, year, dayOfWeek);
   
-  Logger.log(GSUnit.assertArrayEquals('Mondays in April 2016', DateUtils.convertToStamps(expectedArray), DateUtils.convertToStamps(actualArray)));
+  Logger.log(assertArrayEquals('Mondays in April 2016', DateUtils.convertToStamps(expectedArray), DateUtils.convertToStamps(actualArray)));
   
   dayOfWeek = 2;
   expectedArray = new Array();
@@ -366,7 +366,7 @@ function test_day_of_week() {
   
   actualArray = DateUtils.getDays(month, year, dayOfWeek);
   
-  Logger.log(GSUnit.assertArrayEquals('Tuesdays in April 2016', DateUtils.convertToStamps(expectedArray), DateUtils.convertToStamps(actualArray)));
+  Logger.log(assertArrayEquals('Tuesdays in April 2016', DateUtils.convertToStamps(expectedArray), DateUtils.convertToStamps(actualArray)));
   
   dayOfWeek = 3;
   expectedArray = new Array();
@@ -377,7 +377,7 @@ function test_day_of_week() {
   
   actualArray = DateUtils.getDays(month, year, dayOfWeek);
   
-  Logger.log(GSUnit.assertArrayEquals('Wednesdays in April 2016', DateUtils.convertToStamps(expectedArray), DateUtils.convertToStamps(actualArray)));
+  Logger.log(assertArrayEquals('Wednesdays in April 2016', DateUtils.convertToStamps(expectedArray), DateUtils.convertToStamps(actualArray)));
   
   dayOfWeek = 4;
   expectedArray = new Array();
@@ -388,7 +388,7 @@ function test_day_of_week() {
   
   actualArray = DateUtils.getDays(month, year, dayOfWeek);
   
-  Logger.log(GSUnit.assertArrayEquals('Thursdays in April 2016', DateUtils.convertToStamps(expectedArray), DateUtils.convertToStamps(actualArray)));
+  Logger.log(assertArrayEquals('Thursdays in April 2016', DateUtils.convertToStamps(expectedArray), DateUtils.convertToStamps(actualArray)));
   
   dayOfWeek = 5;
   expectedArray = new Array();
@@ -400,7 +400,7 @@ function test_day_of_week() {
   
   actualArray = DateUtils.getDays(month, year, dayOfWeek);
   
-  Logger.log(GSUnit.assertArrayEquals('Fridays in April 2016', DateUtils.convertToStamps(expectedArray), DateUtils.convertToStamps(actualArray)));
+  Logger.log(assertArrayEquals('Fridays in April 2016', DateUtils.convertToStamps(expectedArray), DateUtils.convertToStamps(actualArray)));
   
   dayOfWeek = 6;
   expectedArray = new Array();
@@ -412,7 +412,7 @@ function test_day_of_week() {
   
   actualArray = DateUtils.getDays(month, year, dayOfWeek);
   
-  Logger.log(GSUnit.assertArrayEquals('Saturdays in April 2016', DateUtils.convertToStamps(expectedArray), DateUtils.convertToStamps(actualArray)));
+  Logger.log(assertArrayEquals('Saturdays in April 2016', DateUtils.convertToStamps(expectedArray), DateUtils.convertToStamps(actualArray)));
 }
 
 function test_format_date_DD_MON_YYYY() {
@@ -421,7 +421,7 @@ function test_format_date_DD_MON_YYYY() {
   
   var actual = DateUtils.formatDateDD_MON_YYYY(testDate);
   
-  GSUnit.assertEquals('Format date DD_MON_YYYY', expected, actual);
+  assertEquals('Format date DD_MON_YYYY', expected, actual);
 }
 
 function test_get_time_zone_name()
@@ -431,5 +431,5 @@ function test_get_time_zone_name()
   
   var actual = DateUtils.getTimeZoneName(testDate);
   
-  GSUnit.assertEquals('Time zone name', expected, actual);
+  assertEquals('Time zone name', expected, actual);
 }

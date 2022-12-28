@@ -198,7 +198,7 @@ function test_getConfigTable() {
   
   var actualArray = getConfigTable_();
   
-  Logger.log(GSUnit.assertArrayEquals('Get config table', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Get config table', expectedArray, actualArray));
 }
 
 function test_getStrConfig() {
@@ -208,13 +208,13 @@ function test_getStrConfig() {
 	
   var actual = getStrConfig("DEFAULT_YEAR", "2015");
   
-  GSUnit.assertEquals('Get config DEFAULT_YEAR', expected, actual.toString());
+  assertEquals('Get config DEFAULT_YEAR', expected, actual.toString());
   
   expected = "2015";
 	
   actual = getStrConfig("NO_KEY", "2015");
   
-  GSUnit.assertEquals('Get config string NO_KEY', expected, actual);
+  assertEquals('Get config string NO_KEY', expected, actual);
 
   configTableLoaded = false;
 }
@@ -226,13 +226,13 @@ function test_getNumConfig() {
 	
   var actual = getNumConfig("MEMBER_EMAIL_ROW", 7);
   
-  GSUnit.assertEquals('Get config MEMBER_EMAIL_ROW', expected, actual);
+  assertEquals('Get config MEMBER_EMAIL_ROW', expected, actual);
   
   expected = 7;
 	
   actual = getNumConfig("NO_KEY", 7);
   
-  GSUnit.assertEquals('Get config number NO_KEY', expected, actual);
+  assertEquals('Get config number NO_KEY', expected, actual);
   
   configTableLoaded = false;
 }
@@ -244,13 +244,13 @@ function test_getBoolConfig() {
 	
   var actual = getBoolConfig("REMINDERS", false);
   
-  GSUnit.assertEquals('Get config REMINDERS', expected, actual);
+  assertEquals('Get config REMINDERS', expected, actual);
   
   expected = false;
 	
   actual = getBoolConfig("NO_KEY", false);
   
-  GSUnit.assertEquals('Get config number NO_KEY', expected, actual);
+  assertEquals('Get config number NO_KEY', expected, actual);
   
   configTableLoaded = false;
 }
@@ -270,13 +270,13 @@ function test_manual_getStrConfig() {
 	
   var actual = getStrConfig("DEFAULT_YEAR", "2015");
   
-  GSUnit.assertEquals('Get config manual DEFAULT_YEAR', expected, actual.toString());
+  assertEquals('Get config manual DEFAULT_YEAR', expected, actual.toString());
   
   expected = "2015";
 	
   actual = getStrConfig("NO_KEY", "2015");
   
-  GSUnit.assertEquals('Get config string manual NO_KEY', expected, actual);
+  assertEquals('Get config string manual NO_KEY', expected, actual);
 }
 
 function test_manual_getNumConfig() {
@@ -284,13 +284,13 @@ function test_manual_getNumConfig() {
 	
   var actual = getNumConfig("MEMBER_EMAIL_ROW", 7);
   
-  GSUnit.assertEquals('Get config manual MEMBER_EMAIL_ROW', expected, actual);
+  assertEquals('Get config manual MEMBER_EMAIL_ROW', expected, actual);
   
   expected = 7;
 	
   actual = getNumConfig("NO_KEY", 7);
   
-  GSUnit.assertEquals('Get config number manual NO_KEY', expected, actual);
+  assertEquals('Get config number manual NO_KEY', expected, actual);
 }
 
 function test_manual_getBoolConfig() {
@@ -298,11 +298,11 @@ function test_manual_getBoolConfig() {
 	
   var actual = getBoolConfig("REMINDERS", false);
   
-  GSUnit.assertEquals('Get config manual REMINDERS', expected, actual);
+  assertEquals('Get config manual REMINDERS', expected, actual);
   
   expected = false;
 	
   actual = getBoolConfig("NO_KEY", false);
   
-  GSUnit.assertEquals('Get config number manual NO_KEY', expected, actual);
+  assertEquals('Get config number manual NO_KEY', expected, actual);
 }

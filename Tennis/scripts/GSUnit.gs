@@ -759,4 +759,3 @@ GsUnit.Util.inherit = function(superclass, subclass) {
     x.prototype = superclass.prototype;
     subclass.prototype = new x();
 }
-  

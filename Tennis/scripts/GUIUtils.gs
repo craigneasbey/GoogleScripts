@@ -74,4 +74,3 @@ function test_openCheckDialog() {
 function test_openEntryDialog() {
   GUIUtils.openEntryDialog('Entry title', 'Entry text');
 }
-

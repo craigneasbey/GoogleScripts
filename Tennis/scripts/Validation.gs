@@ -1,5 +1,5 @@
 /**
- * V1.0.0
+ * V1.0.1
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -120,5 +120,5 @@ function test_getErrorWeeks() {
   
   var actualArray = Validation.getErrorWeeks(weeksArray, 4, 4);
   
-  GSUnit.assertArrayEquals('Rostered member weeks that failed validation', expectedArray, actualArray);
+  assertArrayEquals('Rostered member weeks that failed validation', expectedArray, actualArray);
 }

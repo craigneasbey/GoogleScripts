@@ -1,5 +1,5 @@
 /**
- * V1.1.3
+ * V1.1.4
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -289,7 +289,7 @@ function test_get_reminder_member_columns() {
   
   var actualArray = Reminder.getReminderMemberColumns(memberReminders);
 
-  GSUnit.assertArrayEquals('Reminder member columns', expectedArray, actualArray);
+  assertArrayEquals('Reminder member columns', expectedArray, actualArray);
 }
 
 function test_get_rostered_member_columns() {
@@ -298,7 +298,7 @@ function test_get_rostered_member_columns() {
   
   var actualArray = Reminder.getRosteredMemberColumns(testArray);
   
-  GSUnit.assertArrayEquals('Rostered member columns', expectedArray, actualArray);
+  assertArrayEquals('Rostered member columns', expectedArray, actualArray);
   
   testArray = new Array();
   
@@ -306,7 +306,7 @@ function test_get_rostered_member_columns() {
   
   actualArray = Reminder.getRosteredMemberColumns(testArray);
   
-  GSUnit.assertArrayEquals('Rostered member columns no columns', expectedArray, actualArray);
+  assertArrayEquals('Rostered member columns no columns', expectedArray, actualArray);
   
   testArray = null;
   
@@ -314,7 +314,7 @@ function test_get_rostered_member_columns() {
   
   actualArray = Reminder.getRosteredMemberColumns(testArray);
   
-  GSUnit.assertArrayEquals('Rostered member columns null', expectedArray, actualArray);
+  assertArrayEquals('Rostered member columns null', expectedArray, actualArray);
 }
 
 function test_get_column_numbers() {
@@ -324,7 +324,7 @@ function test_get_column_numbers() {
   
   var actualArray = Reminder.getColumnNumbers(columnArray, requiredValue);
 
-  GSUnit.assertArrayEquals('Column numbers', expectedArray, actualArray);
+  assertArrayEquals('Column numbers', expectedArray, actualArray);
 }
 
 function test_enabled_reminder_member_columns() {
@@ -334,7 +334,7 @@ function test_enabled_reminder_member_columns() {
   
   var actualArray = Reminder.enabledReminderMemberColumns(memberRosteredColumns, memberReminderColumns); 
   
-  GSUnit.assertArrayEquals('Enabled reminder member columns', expectedArray, actualArray);
+  assertArrayEquals('Enabled reminder member columns', expectedArray, actualArray);
 }
 
 
@@ -362,10 +362,10 @@ function test_manual_reminder_suite() {
 function test_get_preview_with_header() {
   var actualArray = Reminder.getPreviewWithHeader(2);
   
-  GSUnit.assertTrue('Preview with header size', actualArray.length === 3);
-  GSUnit.assertTrue('Preview with header names size', actualArray[0].length === 7);
-  GSUnit.assertTrue('Preview with header names first blank', isEmptyStr(actualArray[0][0]));
-  GSUnit.assertTrue('Preview week with header roster size', actualArray[1].length === 7);
+  assertTrue('Preview with header size', actualArray.length === 3);
+  assertTrue('Preview with header names size', actualArray[0].length === 7);
+  assertTrue('Preview with header names first blank', isEmptyStr(actualArray[0][0]));
+  assertTrue('Preview week with header roster size', actualArray[1].length === 7);
 }
 
 function test_setReminder() {
@@ -374,7 +374,7 @@ function test_setReminder() {
   Reminder.setReminder(expected);
   var actual = Reminder.getReminder();
 
-  GSUnit.assertEquals('Set Reminder', expected, actual);
+  assertEquals('Set Reminder', expected, actual);
   
   // reset cell
   Reminder.setReminder('');
@@ -386,14 +386,14 @@ function test_isRemindered() {
   Reminder.setReminder(testStr);
   var actual = Reminder.isRemindered();
 
-  GSUnit.assertTrue('Is set reminder', actual);
+  assertTrue('Is set reminder', actual);
   
   // reset cell
   Reminder.setReminder('');
   
   actual = Reminder.isRemindered();
 
-  GSUnit.assertFalse('Is empty reminder', actual);
+  assertFalse('Is empty reminder', actual);
 }
 
 function test_isReminderRequired() {
@@ -404,14 +404,14 @@ function test_isReminderRequired() {
   
   var actual = Reminder.isReminderRequired(now, weekValue);
   
-  GSUnit.assertTrue('Within a date, send email', actual);
+  assertTrue('Within a date, send email', actual);
 
   testDate = new Date(now.getTime() - (DateUtils.ONE_DAY_MS + DateUtils.ONE_DAY_MS)); // 20/02/2016 06:00:00
   Reminder.setReminder(testDate.toString());
   
   actual = Reminder.isReminderRequired(now, weekValue);
   
-  GSUnit.assertTrue('Still within a date, existing reminder, send email', actual);
+  assertTrue('Still within a date, existing reminder, send email', actual);
   
   now.setTime(now.getTime() + DateUtils.ONE_DAY_MS); // 23/02/2016 06:00:00
   testDate.setTime(now.getTime() - (DateUtils.ONE_DAY_MS + DateUtils.ONE_MINUTE_MS)); // 22/02/2016 05:59:00
@@ -420,7 +420,7 @@ function test_isReminderRequired() {
   
   actual = Reminder.isReminderRequired(now, weekValue);
   
-  GSUnit.assertFalse('Still within a date, reminder already set, do not email', actual);
+  assertFalse('Still within a date, reminder already set, do not email', actual);
   
   now = DateUtils.createLocalDate(2016, 2, 21, 20, 0, 0);
   testDate = '';
@@ -428,7 +428,7 @@ function test_isReminderRequired() {
   
   actual = Reminder.isReminderRequired(now, weekValue);
 
-  GSUnit.assertFalse('Older than a day, do not email', actual);
+  assertFalse('Older than a day, do not email', actual);
   
   now = DateUtils.createLocalDate(2016, 2, 23, 18, 0, 0);
   testDate = '';
@@ -436,7 +436,7 @@ function test_isReminderRequired() {
   
   actual = Reminder.isReminderRequired(now, weekValue);
 
-  GSUnit.assertTrue('Within a date, newer than a day', actual);
+  assertTrue('Within a date, newer than a day', actual);
   
   now = DateUtils.createLocalDate(2016, 2, 26, 6, 0, 0);
   testDate = '';
@@ -444,7 +444,7 @@ function test_isReminderRequired() {
   
   actual = Reminder.isReminderRequired(now, weekValue);
 
-  GSUnit.assertFalse('Newer than a day', actual);
+  assertFalse('Newer than a day', actual);
   
   Reminder.setReminder('');
 }

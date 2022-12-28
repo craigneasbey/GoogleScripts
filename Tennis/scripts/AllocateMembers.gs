@@ -1,5 +1,5 @@
 /**
- * V1.2.2
+ * V1.2.3
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -327,8 +327,8 @@ function test_allocate_selected_members() {
   var updated = AllocateMembers.allocateSelectedMembers(weeksArray, historyArray, maxWeeksRostered, maxWeeksRest, fillTeam);
   var actualArray = weeksArray;
   
-  Logger.log(GSUnit.assertTrue('Allocate selected members rostered 2 rest 2 start 0 updated', updated));
-  Logger.log(GSUnit.assertArrayEquals('Allocate selected members rostered 2 rest 2 start 0 array', expectedArray, actualArray));
+  Logger.log(assertTrue('Allocate selected members rostered 2 rest 2 start 0 updated', updated));
+  Logger.log(assertArrayEquals('Allocate selected members rostered 2 rest 2 start 0 array', expectedArray, actualArray));
   
   maxWeeksRostered = 2;
   maxWeeksRest = 1;
@@ -360,53 +360,53 @@ function test_allocate_selected_members() {
   updated = AllocateMembers.allocateSelectedMembers(weeksArray, historyArray, maxWeeksRostered, maxWeeksRest, fillTeam);
   actualArray = weeksArray;
   
-  Logger.log(GSUnit.assertTrue('Allocate selected members rostered 2 rest 1 start 3 updated', updated));
-  Logger.log(GSUnit.assertArrayEquals('Allocate selected members rostered 2 rest 1 start 3 array', expectedArray, actualArray));
+  Logger.log(assertTrue('Allocate selected members rostered 2 rest 1 start 3 updated', updated));
+  Logger.log(assertArrayEquals('Allocate selected members rostered 2 rest 1 start 3 array', expectedArray, actualArray));
 }
 
 function test_allocate_members_for_week_no_history() {
-  Logger.log(GSUnit.assertArrayEquals('members week roster none', new Array("Play"), AllocateMembers.allocateMembersForWeek()));
-  Logger.log(GSUnit.assertArrayEquals('members week roster null array', new Array("Play"), AllocateMembers.allocateMembersForWeek(null)));
-  Logger.log(GSUnit.assertArrayEquals('Empty array', new Array("Play"), AllocateMembers.allocateMembersForWeek(new Array())));
-  Logger.log(GSUnit.assertArrayEquals('Play array', new Array("Play"), AllocateMembers.allocateMembersForWeek(new Array("Play"))));
-  Logger.log(GSUnit.assertArrayEquals('CBA array', new Array("Play"), AllocateMembers.allocateMembersForWeek(new Array("CBA"))));
-  Logger.log(GSUnit.assertArrayEquals('NA array', new Array("NA"), AllocateMembers.allocateMembersForWeek(new Array("NA"))));
-  Logger.log(GSUnit.assertArrayEquals('Invalid cell', new Array("Play"), AllocateMembers.allocateMembersForWeek(new Array("kjlk"))));
+  Logger.log(assertArrayEquals('members week roster none', new Array("Play"), AllocateMembers.allocateMembersForWeek()));
+  Logger.log(assertArrayEquals('members week roster null array', new Array("Play"), AllocateMembers.allocateMembersForWeek(null)));
+  Logger.log(assertArrayEquals('Empty array', new Array("Play"), AllocateMembers.allocateMembersForWeek(new Array())));
+  Logger.log(assertArrayEquals('Play array', new Array("Play"), AllocateMembers.allocateMembersForWeek(new Array("Play"))));
+  Logger.log(assertArrayEquals('CBA array', new Array("Play"), AllocateMembers.allocateMembersForWeek(new Array("CBA"))));
+  Logger.log(assertArrayEquals('NA array', new Array("NA"), AllocateMembers.allocateMembersForWeek(new Array("NA"))));
+  Logger.log(assertArrayEquals('Invalid cell', new Array("Play"), AllocateMembers.allocateMembersForWeek(new Array("kjlk"))));
   
   var emptyArray = new Array("","","","","","","","","","");
   var actualArray = AllocateMembers.allocateMembersForWeek(emptyArray);
   var expectedArray = new Array("Play","Play","Play","Play","CBA","CBA","CBA","CBA","CBA","CBA");
-  Logger.log(GSUnit.assertArrayEquals('Empty size 10 array', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Empty size 10 array', expectedArray, actualArray));
   
   var playArray = new Array("Play","Play","Play","Play","Play","Play","Play","Play","Play","Play");
   actualArray = AllocateMembers.allocateMembersForWeek(playArray);
   expectedArray = new Array("Play","Play","Play","Play","CBA","CBA","CBA","CBA","CBA","CBA");
-  Logger.log(GSUnit.assertArrayEquals('Play size 10 array', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Play size 10 array', expectedArray, actualArray));
   
   var cbaArray = new Array("CBA","CBA","CBA","CBA","CBA","CBA","CBA","CBA","CBA","CBA");
   actualArray = AllocateMembers.allocateMembersForWeek(cbaArray);
   expectedArray = new Array("Play","Play","Play","Play","CBA","CBA","CBA","CBA","CBA","CBA");
-  Logger.log(GSUnit.assertArrayEquals('CBA size 10 array', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('CBA size 10 array', expectedArray, actualArray));
   
   var naArray = new Array("NA","NA","NA","NA","NA","NA","NA","NA","NA","NA");
   actualArray = AllocateMembers.allocateMembersForWeek(naArray);
   expectedArray = new Array("NA","NA","NA","NA","NA","NA","NA","NA","NA","NA");
-  Logger.log(GSUnit.assertArrayEquals('NA size 10 array', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('NA size 10 array', expectedArray, actualArray));
   
   var invalidArray = new Array("kjlk","kjlk","kjlk","kjlk","kjlk","kjlk","kjlk","kjlk","kjlk","kjlk");
   actualArray = AllocateMembers.allocateMembersForWeek(invalidArray);
   expectedArray = new Array("Play","Play","Play","Play","CBA","CBA","CBA","CBA","CBA","CBA");
-  Logger.log(GSUnit.assertArrayEquals('Invalid size 10 array', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Invalid size 10 array', expectedArray, actualArray));
   
   var emptyNAArray = new Array("","","NA","","","NA","","","","");
   actualArray = AllocateMembers.allocateMembersForWeek(emptyNAArray);
   expectedArray = new Array("Play","Play","NA","Play","Play","NA","CBA","CBA","CBA","CBA");
-  Logger.log(GSUnit.assertArrayEquals('Empty NA size 10 array', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Empty NA size 10 array', expectedArray, actualArray));
   
   var playCBAArray = new Array("Play","Play","CBA","Play","Play","CBA","CBA","CBA","CBA","CBA");
   actualArray = AllocateMembers.allocateMembersForWeek(playCBAArray);
   expectedArray = new Array("Play","Play","Play","Play","CBA","CBA","CBA","CBA","CBA","CBA");
-  Logger.log(GSUnit.assertArrayEquals('Play CBA size 10 array', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Play CBA size 10 array', expectedArray, actualArray));
 }
 
 function test_allocate_members_for_week_four_week_history() {
@@ -422,7 +422,7 @@ function test_allocate_members_for_week_four_week_history() {
   
   var actualArray = AllocateMembers.allocateMembersForWeek(emptyWeekArray, historyArray, maxWeeksRostered, maxWeeksRest);
 
-  Logger.log(GSUnit.assertArrayEquals('Empty size 10 array with history sample 1', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Empty size 10 array with history sample 1', expectedArray, actualArray));
   
   maxWeeksRostered = 2;
   maxWeeksRest = 2;
@@ -436,7 +436,7 @@ function test_allocate_members_for_week_four_week_history() {
   
   actualArray = AllocateMembers.allocateMembersForWeek(emptyWeekArray, historyArray, maxWeeksRostered, maxWeeksRest);
   
-  Logger.log(GSUnit.assertArrayEquals('Empty size 10 array with history sample 2', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Empty size 10 array with history sample 2', expectedArray, actualArray));
   
   maxWeeksRostered = 2;
   maxWeeksRest = 2;
@@ -450,7 +450,7 @@ function test_allocate_members_for_week_four_week_history() {
   
   actualArray = AllocateMembers.allocateMembersForWeek(emptyWeekArray, historyArray, maxWeeksRostered, maxWeeksRest);
   
-  Logger.log(GSUnit.assertArrayEquals('Empty size 10 array with history sample 3', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Empty size 10 array with history sample 3', expectedArray, actualArray));
 }
 
 function test_allocate_members_for_week_not_enough_members_available() {
@@ -467,65 +467,65 @@ function test_allocate_members_for_week_not_enough_members_available() {
 
   var expectedArray = new Array("NA","Play","Play","Play","NA","NA","CBA","NA","NA","Play");
   var actualArray = AllocateMembers.allocateMembersForWeek(emptyNAArray, historyArray, maxWeeksRostered, maxWeeksRest);
-  Logger.log(GSUnit.assertArrayEquals('Not enough members for one week', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Not enough members for one week', expectedArray, actualArray));
 }
 
 function test_allocate_member_for_week_no_history() {
-  Logger.log(GSUnit.assertEquals('null cell', "Play", AllocateMembers.allocateMemberForWeek(null)));
-  Logger.log(GSUnit.assertEquals('Empty cell', "Play", AllocateMembers.allocateMemberForWeek("")));
-  Logger.log(GSUnit.assertEquals('Play cell', "Play", AllocateMembers.allocateMemberForWeek("Play")));
-  Logger.log(GSUnit.assertEquals('CBA cell', "Play", AllocateMembers.allocateMemberForWeek("CBA")));
-  Logger.log(GSUnit.assertEquals('NA cell', "NA", AllocateMembers.allocateMemberForWeek("NA")));
-  Logger.log(GSUnit.assertEquals('Invalid cell', "Play", AllocateMembers.allocateMemberForWeek("kjlk")));
+  Logger.log(assertEquals('null cell', "Play", AllocateMembers.allocateMemberForWeek(null)));
+  Logger.log(assertEquals('Empty cell', "Play", AllocateMembers.allocateMemberForWeek("")));
+  Logger.log(assertEquals('Play cell', "Play", AllocateMembers.allocateMemberForWeek("Play")));
+  Logger.log(assertEquals('CBA cell', "Play", AllocateMembers.allocateMemberForWeek("CBA")));
+  Logger.log(assertEquals('NA cell', "NA", AllocateMembers.allocateMemberForWeek("NA")));
+  Logger.log(assertEquals('Invalid cell', "Play", AllocateMembers.allocateMemberForWeek("kjlk")));
 }
  
 function test_allocate_member_for_week_with_history() {
-  Logger.log(GSUnit.assertEquals('Empty cell and empty history', "Play", AllocateMembers.allocateMemberForWeek("", new Array(""))));
-  Logger.log(GSUnit.assertEquals('Empty cell and CBA history', "Play", AllocateMembers.allocateMemberForWeek("", new Array("CBA"))));
-  Logger.log(GSUnit.assertEquals('Empty cell and Play history', "CBA", AllocateMembers.allocateMemberForWeek("", new Array("Play"))));
-  Logger.log(GSUnit.assertEquals('Empty cell and NA history', "Play", AllocateMembers.allocateMemberForWeek("", new Array("NA"))));
-  Logger.log(GSUnit.assertEquals('Empty cell and Invalid history', "Play", AllocateMembers.allocateMemberForWeek("", new Array("kjlk"))));
+  Logger.log(assertEquals('Empty cell and empty history', "Play", AllocateMembers.allocateMemberForWeek("", new Array(""))));
+  Logger.log(assertEquals('Empty cell and CBA history', "Play", AllocateMembers.allocateMemberForWeek("", new Array("CBA"))));
+  Logger.log(assertEquals('Empty cell and Play history', "CBA", AllocateMembers.allocateMemberForWeek("", new Array("Play"))));
+  Logger.log(assertEquals('Empty cell and NA history', "Play", AllocateMembers.allocateMemberForWeek("", new Array("NA"))));
+  Logger.log(assertEquals('Empty cell and Invalid history', "Play", AllocateMembers.allocateMemberForWeek("", new Array("kjlk"))));
   
-  Logger.log(GSUnit.assertEquals('Play cell and empty history', "Play", AllocateMembers.allocateMemberForWeek("Play", new Array(""))));
-  Logger.log(GSUnit.assertEquals('Play cell and CBA history', "Play", AllocateMembers.allocateMemberForWeek("Play", new Array("CBA"))));
-  Logger.log(GSUnit.assertEquals('Play cell and Play history', "CBA", AllocateMembers.allocateMemberForWeek("Play", new Array("Play"))));
-  Logger.log(GSUnit.assertEquals('Play cell and NA history', "Play", AllocateMembers.allocateMemberForWeek("Play", new Array("NA"))));
-  Logger.log(GSUnit.assertEquals('Play cell and Invalid history', "Play", AllocateMembers.allocateMemberForWeek("Play", new Array("kjlk"))));
+  Logger.log(assertEquals('Play cell and empty history', "Play", AllocateMembers.allocateMemberForWeek("Play", new Array(""))));
+  Logger.log(assertEquals('Play cell and CBA history', "Play", AllocateMembers.allocateMemberForWeek("Play", new Array("CBA"))));
+  Logger.log(assertEquals('Play cell and Play history', "CBA", AllocateMembers.allocateMemberForWeek("Play", new Array("Play"))));
+  Logger.log(assertEquals('Play cell and NA history', "Play", AllocateMembers.allocateMemberForWeek("Play", new Array("NA"))));
+  Logger.log(assertEquals('Play cell and Invalid history', "Play", AllocateMembers.allocateMemberForWeek("Play", new Array("kjlk"))));
   
-  Logger.log(GSUnit.assertEquals('CBA cell and empty history', "Play", AllocateMembers.allocateMemberForWeek("CBA", new Array(""))));
-  Logger.log(GSUnit.assertEquals('CBA cell and CBA history', "Play", AllocateMembers.allocateMemberForWeek("CBA", new Array("CBA"))));
-  Logger.log(GSUnit.assertEquals('CBA cell and Play history', "CBA", AllocateMembers.allocateMemberForWeek("CBA", new Array("Play"))));
-  Logger.log(GSUnit.assertEquals('CBA cell and NA history', "Play", AllocateMembers.allocateMemberForWeek("CBA", new Array("NA"))));
-  Logger.log(GSUnit.assertEquals('CBA cell and Invalid history', "Play", AllocateMembers.allocateMemberForWeek("CBA", new Array("kjlk"))));
+  Logger.log(assertEquals('CBA cell and empty history', "Play", AllocateMembers.allocateMemberForWeek("CBA", new Array(""))));
+  Logger.log(assertEquals('CBA cell and CBA history', "Play", AllocateMembers.allocateMemberForWeek("CBA", new Array("CBA"))));
+  Logger.log(assertEquals('CBA cell and Play history', "CBA", AllocateMembers.allocateMemberForWeek("CBA", new Array("Play"))));
+  Logger.log(assertEquals('CBA cell and NA history', "Play", AllocateMembers.allocateMemberForWeek("CBA", new Array("NA"))));
+  Logger.log(assertEquals('CBA cell and Invalid history', "Play", AllocateMembers.allocateMemberForWeek("CBA", new Array("kjlk"))));
   
-  Logger.log(GSUnit.assertEquals('NA cell and empty history', "NA", AllocateMembers.allocateMemberForWeek("NA", new Array(""))));
-  Logger.log(GSUnit.assertEquals('NA cell and CBA history', "NA", AllocateMembers.allocateMemberForWeek("NA", new Array("CBA"))));
-  Logger.log(GSUnit.assertEquals('NA cell and Play history', "NA", AllocateMembers.allocateMemberForWeek("NA", new Array("Play"))));
-  Logger.log(GSUnit.assertEquals('NA cell and NA history', "NA", AllocateMembers.allocateMemberForWeek("NA", new Array("NA"))));
-  Logger.log(GSUnit.assertEquals('NA cell and Invalid history', "NA", AllocateMembers.allocateMemberForWeek("NA", new Array("kjlk"))));
+  Logger.log(assertEquals('NA cell and empty history', "NA", AllocateMembers.allocateMemberForWeek("NA", new Array(""))));
+  Logger.log(assertEquals('NA cell and CBA history', "NA", AllocateMembers.allocateMemberForWeek("NA", new Array("CBA"))));
+  Logger.log(assertEquals('NA cell and Play history', "NA", AllocateMembers.allocateMemberForWeek("NA", new Array("Play"))));
+  Logger.log(assertEquals('NA cell and NA history', "NA", AllocateMembers.allocateMemberForWeek("NA", new Array("NA"))));
+  Logger.log(assertEquals('NA cell and Invalid history', "NA", AllocateMembers.allocateMemberForWeek("NA", new Array("kjlk"))));
   
-  Logger.log(GSUnit.assertEquals('Invalid cell and empty history', "Play", AllocateMembers.allocateMemberForWeek("kjlk", new Array(""))));
-  Logger.log(GSUnit.assertEquals('Invalid cell and CBA history', "Play", AllocateMembers.allocateMemberForWeek("kjlk", new Array("CBA"))));
-  Logger.log(GSUnit.assertEquals('Invalid cell and Play history', "CBA", AllocateMembers.allocateMemberForWeek("kjlk", new Array("Play"))));
-  Logger.log(GSUnit.assertEquals('Invalid cell and NA history', "Play", AllocateMembers.allocateMemberForWeek("kjlk", new Array("NA"))));
-  Logger.log(GSUnit.assertEquals('Invalid cell and Invalid history', "Play", AllocateMembers.allocateMemberForWeek("kjlk", new Array("kjlk"))));
+  Logger.log(assertEquals('Invalid cell and empty history', "Play", AllocateMembers.allocateMemberForWeek("kjlk", new Array(""))));
+  Logger.log(assertEquals('Invalid cell and CBA history', "Play", AllocateMembers.allocateMemberForWeek("kjlk", new Array("CBA"))));
+  Logger.log(assertEquals('Invalid cell and Play history', "CBA", AllocateMembers.allocateMemberForWeek("kjlk", new Array("Play"))));
+  Logger.log(assertEquals('Invalid cell and NA history', "Play", AllocateMembers.allocateMemberForWeek("kjlk", new Array("NA"))));
+  Logger.log(assertEquals('Invalid cell and Invalid history', "Play", AllocateMembers.allocateMemberForWeek("kjlk", new Array("kjlk"))));
 }
 
 function test_allocate_member_for_week_with_multiple_history() {  
   var historyArray = new Array("", "", "", "", "");
-  Logger.log(GSUnit.assertEquals('Empty cell and empty size 5 history', "Play", AllocateMembers.allocateMemberForWeek("", historyArray)));
+  Logger.log(assertEquals('Empty cell and empty size 5 history', "Play", AllocateMembers.allocateMemberForWeek("", historyArray)));
   
   historyArray = new Array("CBA", "CBA", "CBA", "CBA", "CBA");
-  Logger.log(GSUnit.assertEquals('Empty cell and CBA size 5 history', "Play", AllocateMembers.allocateMemberForWeek("", historyArray)));
+  Logger.log(assertEquals('Empty cell and CBA size 5 history', "Play", AllocateMembers.allocateMemberForWeek("", historyArray)));
   
   historyArray = new Array("Play", "Play", "Play", "Play", "Play");
-  Logger.log(GSUnit.assertEquals('Empty cell and Play size 5 history', "CBA", AllocateMembers.allocateMemberForWeek("", historyArray)));
+  Logger.log(assertEquals('Empty cell and Play size 5 history', "CBA", AllocateMembers.allocateMemberForWeek("", historyArray)));
   
   historyArray = new Array("NA", "NA", "NA", "NA", "NA");
-  Logger.log(GSUnit.assertEquals('Empty cell and NA size 5 history', "Play", AllocateMembers.allocateMemberForWeek("", historyArray)));
+  Logger.log(assertEquals('Empty cell and NA size 5 history', "Play", AllocateMembers.allocateMemberForWeek("", historyArray)));
   
   historyArray = new Array("kjlk", "kjlk", "kjlk", "kjlk", "kjlk");
-  Logger.log(GSUnit.assertEquals('Empty cell and Invalid size 5 history', "Play", AllocateMembers.allocateMemberForWeek("", historyArray)));
+  Logger.log(assertEquals('Empty cell and Invalid size 5 history', "Play", AllocateMembers.allocateMemberForWeek("", historyArray)));
 }
 
 function test_allocate_member_for_week_with_multiple_different_history_consecutive_two() {  
@@ -540,7 +540,7 @@ function test_allocate_member_for_week_with_multiple_different_history_consecuti
   ArrayUtils.arrayRotateOneDimensionRight(historyArray);
   var comment = 'Member for week, empty roster and Play, CBA, Play, Play, CBA history, rostered 2, rest 1';
   
-  Logger.log(GSUnit.assertEquals(comment, "Play", AllocateMembers.allocateMemberForWeek("", historyArray, maxWeeksRostered, maxWeeksRest)));
+  Logger.log(assertEquals(comment, "Play", AllocateMembers.allocateMemberForWeek("", historyArray, maxWeeksRostered, maxWeeksRest)));
   
   maxWeeksRostered = 2;
   maxWeeksRest = 1;
@@ -553,7 +553,7 @@ function test_allocate_member_for_week_with_multiple_different_history_consecuti
   ArrayUtils.arrayRotateOneDimensionRight(historyArray);
   comment = 'Member for week, empty roster and Play, Play, Play, Play, CBA history, rostered 2, rest 1';
   
-  Logger.log(GSUnit.assertEquals(comment, "CBA", AllocateMembers.allocateMemberForWeek("", historyArray, maxWeeksRostered, maxWeeksRest)));
+  Logger.log(assertEquals(comment, "CBA", AllocateMembers.allocateMemberForWeek("", historyArray, maxWeeksRostered, maxWeeksRest)));
 }
 
 function test_allocate_member_for_week_with_multiple_different_history_consecutive_five() {
@@ -568,7 +568,7 @@ function test_allocate_member_for_week_with_multiple_different_history_consecuti
   ArrayUtils.arrayRotateOneDimensionRight(historyArray);
   var comment = 'Member for week, empty roster and Play, Play, Play, Play, CBA history, rostered 5, rest 1';
   
-  Logger.log(GSUnit.assertEquals(comment, "Play", AllocateMembers.allocateMemberForWeek("", historyArray, maxWeeksRostered, maxWeeksRest)));
+  Logger.log(assertEquals(comment, "Play", AllocateMembers.allocateMemberForWeek("", historyArray, maxWeeksRostered, maxWeeksRest)));
   
   maxWeeksRostered = 5;
   maxWeeksRest = 1;
@@ -581,7 +581,7 @@ function test_allocate_member_for_week_with_multiple_different_history_consecuti
   ArrayUtils.arrayRotateOneDimensionRight(historyArray);
   comment = 'Member for week, empty roster and Play, Play, Play, Play, NA history, rostered 5, rest 1';
   
-  Logger.log(GSUnit.assertEquals(comment, "Play", AllocateMembers.allocateMemberForWeek("", historyArray, maxWeeksRostered, maxWeeksRest)));
+  Logger.log(assertEquals(comment, "Play", AllocateMembers.allocateMemberForWeek("", historyArray, maxWeeksRostered, maxWeeksRest)));
 }
 
 function test_allocate_member_for_week_with_multiple_different_history_consecutive_two_with_rest_two() {
@@ -598,7 +598,7 @@ function test_allocate_member_for_week_with_multiple_different_history_consecuti
   
   var actualStatus = AllocateMembers.allocateMemberForWeek("", historyArray, maxWeeksRostered, maxWeeksRest);
   
-  Logger.log(GSUnit.assertEquals(comment, "Play", actualStatus));
+  Logger.log(assertEquals(comment, "Play", actualStatus));
   
   maxWeeksRostered = 2;
   maxWeeksRest = 2;
@@ -613,7 +613,7 @@ function test_allocate_member_for_week_with_multiple_different_history_consecuti
   
   actualStatus = AllocateMembers.allocateMemberForWeek("", historyArray, maxWeeksRostered, maxWeeksRest);
   
-  Logger.log(GSUnit.assertEquals(comment, "CBA", actualStatus));
+  Logger.log(assertEquals(comment, "CBA", actualStatus));
   
   maxWeeksRostered = 2;
   maxWeeksRest = 2;
@@ -628,7 +628,7 @@ function test_allocate_member_for_week_with_multiple_different_history_consecuti
   
   actualStatus = AllocateMembers.allocateMemberForWeek("", historyArray, maxWeeksRostered, maxWeeksRest);
   
-  Logger.log(GSUnit.assertEquals(comment, "Play", actualStatus));
+  Logger.log(assertEquals(comment, "Play", actualStatus));
   
   maxWeeksRostered = 2;
   maxWeeksRest = 3;
@@ -643,7 +643,7 @@ function test_allocate_member_for_week_with_multiple_different_history_consecuti
   
   actualStatus = AllocateMembers.allocateMemberForWeek("", historyArray, maxWeeksRostered, maxWeeksRest);
   
-  Logger.log(GSUnit.assertEquals(comment, "CBA", actualStatus));
+  Logger.log(assertEquals(comment, "CBA", actualStatus));
 }
 
 function test_progress_members_history() {
@@ -660,7 +660,7 @@ function test_progress_members_history() {
   
   var actualArray = AllocateMembers.progressMembersHistory(historyArray, testRow);
   
-  Logger.log(GSUnit.assertArrayEquals('Progress member history empty', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Progress member history empty', expectedArray, actualArray));
   
   expectedArray[0] = new Array("Play", "NA");
   expectedArray[1] = new Array("CBA", "CBA");
@@ -669,7 +669,7 @@ function test_progress_members_history() {
   
   actualArray = AllocateMembers.progressMembersHistory(historyArray, testRow);
   
-  Logger.log(GSUnit.assertArrayEquals('Progress member history empty array', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Progress member history empty array', expectedArray, actualArray));
   
   historyArray = new Array();
   historyArray[0] = new Array("CBA", "Play");
@@ -683,7 +683,7 @@ function test_progress_members_history() {
   
   actualArray = AllocateMembers.progressMembersHistory(historyArray, testRow);
   
-  Logger.log(GSUnit.assertArrayEquals('Progress 2 members history', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Progress 2 members history', expectedArray, actualArray));
   
   testRow = new Array("NA","Play","Play","Play","NA","NA","CBA","NA","NA","Play");
   
@@ -701,6 +701,5 @@ function test_progress_members_history() {
   
   var actualArray = AllocateMembers.progressMembersHistory(historyArray, testRow);
   
-  Logger.log(GSUnit.assertArrayEquals('Progress 10 members history', expectedArray, actualArray));
+  Logger.log(assertArrayEquals('Progress 10 members history', expectedArray, actualArray));
 }
-
