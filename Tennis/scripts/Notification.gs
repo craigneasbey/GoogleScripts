@@ -1,5 +1,5 @@
 /**
- * V1.1.2
+ * V1.1.3
  * https://developers.google.com/apps-script/reference/
  * https://sites.google.com/site/scriptsexamples/custom-methods/gsunit
  *
@@ -46,9 +46,8 @@ Notification.getMemberEmails = function() {
     for (i in data) {
       var row = data[i];
       for (j in row) {
-        if(!isEmptyStr(row[j])) {
-          emails.push(row[j]);
-        }
+        // Allow empty emails
+        emails.push(row[j]);
       }
     }
   } else {
@@ -86,14 +85,19 @@ Notification.sendEmail = function(recipients, subject, message) {
   message += '<div>https://docs.google.com/spreadsheets/d/' + SPREADSHEET_DOCUMENT_ID + '/edit?usp=sharing</div>';
   
   var recipientsCSV = '';
+  var exists = false;
   
   if(Array.isArray(recipients)) {
     for(i in recipients) {
-      if(!isEmptyStr(recipientsCSV)) {
+      exists = !isEmptyStr(recipients[i]);
+
+      if(!isEmptyStr(recipientsCSV) && exists) {
         recipientsCSV += ',';
       }
       
-      recipientsCSV += recipients[i];
+      if(exists) {
+        recipientsCSV += recipients[i];
+      }
     }
     
     if(!isEmptyStr(recipientsCSV)) {
@@ -147,8 +151,11 @@ function test_getMemberEmails() {
   assertTrue('Member emails has length', actualArray.length > expectedMinLength);
   
   for(var i=0; i < actualArray.length; i++) {
-    var comment = 'Email ' + actualArray[i] + ' is not a valid email address';
-    assertTrue(comment, actualArray[i].indexOf('@') === -1 ? false : true);
+    if(!isEmptyStr(actualArray[i]))
+    {
+      var comment = 'Email ' + actualArray[i] + ' is not a valid email address';
+      assertTrue(comment, actualArray[i].indexOf('@') === -1 ? false : true);
+    }
   }
 }
 
@@ -161,8 +168,11 @@ function test_getIndividualMemberEmails() {
   assertTrue('Individual member emails has length', actualArray.length === expectedLength);
   
   for(var i=0; i < actualArray.length; i++) {
-    var comment = 'Email ' + actualArray[i] + ' is not a valid email address';
-    assertTrue(comment, actualArray[i].indexOf('@') === -1 ? false : true);
+    if(!isEmptyStr(actualArray[i]))
+    {
+      var comment = 'Email ' + actualArray[i] + ' is not a valid email address';
+      assertTrue(comment, actualArray[i].indexOf('@') === -1 ? false : true);
+    }
   }
 }
 
